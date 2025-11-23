@@ -5,37 +5,70 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
 
+// Bảng màu chi tiết, chia nhóm, dễ mở rộng
+export const PALETTE = {
+  primary: '#0a7ea4',
+  secondary: '#2ecc71',
+  accent: '#e67e22',
+  error: '#e74c3c',
+  warning: '#f1c40f',
+  success: '#27ae60',
+  info: '#2980b9',
+  backgroundLight: '#fff',
+  backgroundDark: '#151718',
+  surface: '#f5f6fa',
+  textLight: '#11181C',
+  textDark: '#ECEDEE',
+  border: '#dfe4ea',
+  iconLight: '#687076',
+  iconDark: '#9BA1A6',
+};
+
+// Bảng màu cho light/dark mode, dùng PALETTE
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    primary: PALETTE.primary,
+    secondary: PALETTE.secondary,
+    accent: PALETTE.accent,
+    error: PALETTE.error,
+    warning: PALETTE.warning,
+    success: PALETTE.success,
+    info: PALETTE.info,
+    text: PALETTE.textLight,
+    background: PALETTE.backgroundLight,
+    surface: PALETTE.surface,
+    border: PALETTE.border,
+    icon: PALETTE.iconLight,
+    tabIconDefault: PALETTE.iconLight,
+    tabIconSelected: PALETTE.primary,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    primary: PALETTE.primary,
+    secondary: PALETTE.secondary,
+    accent: PALETTE.accent,
+    error: PALETTE.error,
+    warning: PALETTE.warning,
+    success: PALETTE.success,
+    info: PALETTE.info,
+    text: PALETTE.textDark,
+    background: PALETTE.backgroundDark,
+    surface: PALETTE.backgroundDark,
+    border: PALETTE.border,
+    icon: PALETTE.iconDark,
+    tabIconDefault: PALETTE.iconDark,
+    tabIconSelected: '#fff',
   },
 };
 
+// Type cho màu, giúp gợi ý khi import
+export type ThemeColors = typeof Colors.light;
+
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
