@@ -7,7 +7,6 @@ import {
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-import TamaguiTest from "../components/TamaguiTest";
 import "./global.css";
 
 export const unstable_settings = {
@@ -26,7 +25,6 @@ export default function RootLayout() {
           options={{ presentation: "modal", title: "Modal" }}
         />
       </Stack>
-      <TamaguiTest />
       <StatusBar style="auto" />
     </ThemeProvider>
   );
