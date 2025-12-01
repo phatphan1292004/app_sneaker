@@ -1,5 +1,10 @@
+import CustomTabBar from "@/components/CustomTabBar";
+import CartIcon from "@/components/icons/CartIcon";
+import FavIcon from "@/components/icons/FavIcon";
+import HomeIcon from "@/components/icons/HomeIcon";
+import ProfileIcon from "@/components/icons/ProfileIcon";
+import SearchIcon from "@/components/icons/SearchIcon";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import React from "react";
 
@@ -8,10 +13,11 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: colorScheme === "dark" ? "#fff" : "#007bff",
-        tabBarInactiveTintColor: "#999",
-        headerShown: true, // hiện header để thấy title
+        tabBarActiveTintColor: "#C4FF0E",
+        tabBarInactiveTintColor: "#666",
+        headerShown: false,
       }}
     >
       <Tabs.Screen
@@ -20,18 +26,7 @@ export default function TabLayout() {
           title: "Home",
           tabBarLabel: "Home",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="cart"
-        options={{
-          title: "Giỏ hàng",
-          tabBarLabel: "Cart",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cart-outline" size={size} color={color} />
+            <HomeIcon width={size} height={size} stroke={color} />
           ),
         }}
       />
@@ -42,7 +37,29 @@ export default function TabLayout() {
           title: "Tìm kiếm",
           tabBarLabel: "Search",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
+            <SearchIcon width={size} height={size} stroke={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="cart"
+        options={{
+          title: "Giỏ hàng",
+          tabBarLabel: "Cart",
+          tabBarIcon: ({ color, size }) => (
+            <CartIcon width={size} height={size} stroke={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="fav"
+        options={{
+          title: "Yêu thích",
+          tabBarLabel: "Favorite",
+          tabBarIcon: ({ color, size }) => (
+            <FavIcon width={size} height={size} stroke={color} />
           ),
         }}
       />
@@ -53,7 +70,7 @@ export default function TabLayout() {
           title: "Cá nhân",
           tabBarLabel: "Profile",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+            <ProfileIcon width={size} height={size} stroke={color} />
           ),
         }}
       />
