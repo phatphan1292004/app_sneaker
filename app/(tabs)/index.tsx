@@ -1,3 +1,4 @@
+import ProductCard from "@/components/product/product_card";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -10,7 +11,7 @@ import {
 } from "react-native";
 
 // Mock data
-const MOCK_PRODUCTS = [
+const FOR_YOU_PRODUCTS = [
   {
     id: "1",
     name: "AIR MAX 270 REACT",
@@ -41,7 +42,76 @@ const MOCK_PRODUCTS = [
   },
 ];
 
-const BRANDS = ["ALL", "NIKE", "ADIDAS", "REEBOK", "VANS"];
+const POPULAR_PRODUCTS = [
+  {
+    id: "5",
+    name: "AIR JORDAN 1",
+    brand: "NIKE",
+    price: 169.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+  {
+    id: "6",
+    name: "ULTRABOOST",
+    brand: "ADIDAS",
+    price: 159.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+  {
+    id: "7",
+    name: "CLUB C 85",
+    brand: "REEBOK",
+    price: 79.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+  {
+    id: "8",
+    name: "OLD SKOOL",
+    brand: "VANS",
+    price: 69.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+];
+
+const NEWEST_PRODUCTS = [
+  {
+    id: "9",
+    name: "ZOOM FLY 5",
+    brand: "NIKE",
+    price: 189.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+  {
+    id: "10",
+    name: "NMD_R1",
+    brand: "ADIDAS",
+    price: 149.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+  {
+    id: "11",
+    name: "SUEDE CLASSIC",
+    brand: "PUMA",
+    price: 89.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+  {
+    id: "12",
+    name: "SK8-HI",
+    brand: "VANS",
+    price: 74.9,
+    image: "https://plus.unsplash.com/premium_photo-1764180637275-cae8e42428c5?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyfHx8ZW58MHx8fHx8",
+  },
+];
+
+const BRANDS = [
+  { name: "ALL", logo: null },
+  { name: "NIKE", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/512px-Logo_NIKE.svg.png" },
+  { name: "ADIDAS", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/512px-Adidas_Logo.svg.png" },
+  { name: "PUMA", logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/da/Puma_complete_logo.svg/512px-Puma_complete_logo.svg.png" },
+  { name: "REEBOK", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Reebok_logo.svg/512px-Reebok_logo.svg.png" },
+  { name: "VANS", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Vans-logo.svg/512px-Vans-logo.svg.png" },
+];
 
 export default function HomeScreen() {
   const [selectedBrand, setSelectedBrand] = React.useState("ALL");
@@ -53,8 +123,8 @@ export default function HomeScreen() {
         <View className="px-5 pt-3 pb-2 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Image
-              source={{ uri: "https://via.placeholder.com/40/496c60/FFFFFF?text=J" }}
-              className="w-10 h-10 rounded-full"
+              source={{ uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center" }}
+              className="w-14 h-14 rounded-lg"
             />
             <View className="ml-3">
               <Text className="text-sm text-gray-500">Hi, Jelly 👋</Text>
@@ -102,75 +172,126 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Brand Filter */}
-        <View className="mb-4">
+        {/* Popular Brand */}
+        <View className="mb-4 px-5">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-lg font-bold text-gray-900">Popular Brand</Text>
+            <TouchableOpacity>
+              <Text className="text-sm" style={{ color: '#496c60' }}>See all</Text>
+            </TouchableOpacity>
+          </View>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20 }}
           >
-            {BRANDS.map((brand, index) => (
+            {BRANDS.map((brand) => (
               <TouchableOpacity
-                key={brand}
-                onPress={() => setSelectedBrand(brand)}
-                className="mr-3 px-5 py-2 rounded-full"
-                style={{
-                  backgroundColor: selectedBrand === brand ? '#496c60' : '#f3f4f6'
-                }}
+                key={brand.name}
+                onPress={() => setSelectedBrand(brand.name)}
+                className="mr-3 items-center"
               >
-                <Text
-                  className={`font-semibold ${
-                    selectedBrand === brand ? "text-white" : "text-gray-700"
-                  }`}
+                <View 
+                  className="rounded-full p-3 items-center justify-center"
+                  style={{
+                    width: 70,
+                    height: 70,
+                    backgroundColor: selectedBrand === brand.name ? '#e8f5e9' : '#f5f5f5',
+                    borderWidth: selectedBrand === brand.name ? 1 : 0,
+                    borderColor: '#496c60',
+                  }}
                 >
-                  {brand}
+                  {brand.logo ? (
+                    <Image
+                      source={{ uri: brand.logo }}
+                      style={{ width: 40, height: 40}}
+                      resizeMode="contain"
+                    />
+                  ) : (
+                    <Text className="text-xl font-bold text-gray-400">All</Text>
+                  )}
+                </View>
+                <Text 
+                  className="text-xs mt-1 font-medium"
+                  style={{
+                    color: selectedBrand === brand.name ? '#496c60' : '#6b7280'
+                  }}
+                >
+                  {brand.name}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {/* Discover Section */}
-        <View className="px-5 mb-3">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <View className="w-1 h-6 rounded mr-2" style={{ backgroundColor: '#496c60' }} />
-              <Text className="text-xl font-bold text-gray-900">Discover</Text>
-            </View>
-            <TouchableOpacity className="flex-row items-center">
-              <Text className="text-sm text-gray-600 mr-1">View All</Text>
-              <Ionicons name="arrow-forward" size={16} color="#666" />
+        {/* For You Section */}
+        <View className="mb-6">
+          <View className="px-5 mb-3 flex-row items-center justify-between">
+            <Text className="text-lg font-bold text-gray-900">For you</Text>
+            <TouchableOpacity>
+              <Text className="text-sm" style={{ color: '#496c60' }}>View All →</Text>
             </TouchableOpacity>
+          </View>
+          <View className="px-5">
+            <View className="flex-row flex-wrap justify-between">
+              {FOR_YOU_PRODUCTS.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  brand={product.brand}
+                  price={product.price}
+                  image={product.image}
+                />
+              ))}
+            </View>
           </View>
         </View>
 
-        {/* Products Grid */}
-        <View className="px-5 pb-24">
-          <View className="flex-row flex-wrap justify-between">
-            {MOCK_PRODUCTS.map((product) => (
-              <TouchableOpacity
-                key={product.id}
-                className="w-[48%] bg-white rounded-2xl p-2 mb-4 shadow-sm"
-              >
-                <Image
-                  source={{ uri: product.image }}
-                  className="w-full h-32 rounded-xl mb-3"
-                  resizeMode="cover"
+        {/* Popular Section */}
+        <View className="mb-6">
+          <View className="px-5 mb-3 flex-row items-center justify-between">
+            <Text className="text-lg font-bold text-gray-900">Popular</Text>
+            <TouchableOpacity>
+              <Text className="text-sm" style={{ color: '#496c60' }}>View All →</Text>
+            </TouchableOpacity>
+          </View>
+          <View className="px-5">
+            <View className="flex-row flex-wrap justify-between">
+              {POPULAR_PRODUCTS.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  brand={product.brand}
+                  price={product.price}
+                  image={product.image}
                 />
-                <Text className="text-xs text-gray-500 mb-1">
-                  {product.brand}
-                </Text>
-                <Text
-                  className="text-sm font-semibold text-gray-900 mb-2"
-                  numberOfLines={2}
-                >
-                  {product.name}
-                </Text>
-                <Text className="text-base font-bold text-gray-900">
-                  USD {product.price}
-                </Text>
-              </TouchableOpacity>
-            ))}
+              ))}
+            </View>
+          </View>
+        </View>
+
+        {/* Newest Section */}
+        <View className="mb-6 pb-24">
+          <View className="px-5 mb-3 flex-row items-center justify-between">
+            <Text className="text-lg font-bold text-gray-900">Newest</Text>
+            <TouchableOpacity>
+              <Text className="text-sm" style={{ color: '#496c60' }}>View All →</Text>
+            </TouchableOpacity>
+          </View>
+          <View className="px-5">
+            <View className="flex-row flex-wrap justify-between">
+              {NEWEST_PRODUCTS.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  brand={product.brand}
+                  price={product.price}
+                  image={product.image}
+                />
+              ))}
+            </View>
           </View>
         </View>
       </ScrollView>
