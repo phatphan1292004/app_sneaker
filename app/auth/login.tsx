@@ -1,7 +1,9 @@
+import { loginUser } from "@/services/authService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -11,8 +13,26 @@ import {
 
 export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await loginUser({ email, password });
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      Alert.alert("Login Failed", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -35,10 +55,12 @@ export default function LoginScreen() {
         {/* Input Fields */}
         <View className="mb-6">
           <TextInput
-            placeholder="Enter Username"
+            placeholder="Enter Email"
             placeholderTextColor="#9ca3af"
-            value={username}
-            onChangeText={setUsername}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
             className="bg-gray-50 rounded-xl px-4 py-4 text-gray-900 mb-4"
           />
 
@@ -67,14 +89,12 @@ export default function LoginScreen() {
         {/* Sign In Button */}
         <TouchableOpacity
           className="rounded-xl py-4 mb-6"
-          style={{ backgroundColor: "#496c60" }}
-          onPress={() => {
-            // TODO: Handle login logic
-            router.replace("/(tabs)");
-          }}
+          style={{ backgroundColor: "#496c60", opacity: loading ? 0.7 : 1 }}
+          onPress={handleLogin}
+          disabled={loading}
         >
           <Text className="text-white text-center font-semibold text-base">
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </Text>
         </TouchableOpacity>
 

@@ -1,7 +1,10 @@
+import { registerUser } from "@/services/authService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -14,8 +17,42 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullname, setFullname] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!username || !email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    if (!acceptTerms) {
+      Alert.alert("Error", "Please accept terms and conditions");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log("Starting registration...");
+      await registerUser({ username, email, password });
+      console.log("Registration successful!");
+      setLoading(false);
+      Alert.alert(
+        "Success", 
+        "Account created successfully! Please sign in.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/auth/login")
+          }
+        ]
+      );
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      setLoading(false);
+      Alert.alert("Registration Failed", error.message || "An error occurred");
+    }
+  };
 
   return (
     <ScrollView className="flex-1 bg-white">
@@ -37,14 +74,6 @@ export default function RegisterScreen() {
 
         {/* Input Fields */}
         <View className="mb-6">
-          <TextInput
-            placeholder="Enter Full Name"
-            placeholderTextColor="#9ca3af"
-            value={fullname}
-            onChangeText={setFullname}
-            className="bg-gray-50 rounded-xl px-4 py-4 text-gray-900 mb-4"
-          />
-
           <TextInput
             placeholder="Enter Username"
             placeholderTextColor="#9ca3af"
@@ -106,16 +135,18 @@ export default function RegisterScreen() {
 
         {/* Sign Up Button */}
         <TouchableOpacity
-          className="rounded-xl py-4 mb-6"
-          style={{ backgroundColor: "#496c60" }}
-          onPress={() => {
-            // TODO: Handle register logic
-            router.replace("/(tabs)");
-          }}
+          className="rounded-xl py-4 mb-6 flex-row items-center justify-center"
+          style={{ backgroundColor: "#496c60", opacity: loading ? 0.7 : 1 }}
+          onPress={handleRegister}
+          disabled={loading}
         >
-          <Text className="text-white text-center font-semibold text-base">
-            Sign In
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text className="text-white text-center font-semibold text-base">
+              Sign Up
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Divider */}

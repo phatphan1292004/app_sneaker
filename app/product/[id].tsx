@@ -39,7 +39,7 @@ export default function ProductDetailScreen() {
   const [activeTab, setActiveTab] = useState<"description" | "review">("description");
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white mt-5">
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-5 py-4 flex-row items-center justify-between">
@@ -259,7 +259,7 @@ export default function ProductDetailScreen() {
 
       {/* Bottom Action Bar */}
       <View
-        className="py-2 pr-5 flex-row items-center gap-3"
+        className="py-4 pr-5 flex-row items-center gap-3 bg-white"
         style={{
           borderTopWidth: 1,
           borderTopColor: "#e5e7eb",
@@ -270,7 +270,7 @@ export default function ProductDetailScreen() {
           elevation: 5,
         }}
       >
-        <View className="flex-1 bg-white px-5 py-4" style={{ borderColor: "#496c60" }}>
+        <View className="flex-1 px-5 py-4" style={{ borderColor: "#496c60" }}>
           <Text className="font-bold text-lg" style={{ color: "#496c60" }}>
             $ {PRODUCT_DETAIL.price}
           </Text>
