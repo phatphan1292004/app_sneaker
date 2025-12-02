@@ -60,7 +60,7 @@ export default function CustomTabBar({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: "#f3f4f6",
     paddingHorizontal: 20,
     paddingBottom: 20,
   },

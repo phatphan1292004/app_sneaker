@@ -81,7 +81,7 @@ export default function LoginScreen() {
         {/* Divider */}
         <View className="flex-row items-center mb-6">
           <View className="flex-1 h-px bg-gray-200" />
-          <Text className="mx-4 text-gray-400 text-sm">or signin with</Text>
+          <Text className="mx-4 text-gray-400 text-sm">or Signin with</Text>
           <View className="flex-1 h-px bg-gray-200" />
         </View>
 
