@@ -47,17 +47,17 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <View
-      className="flex-1 bg-white"
-      style={{ paddingTop: StatusBar.currentHeight || 20 }}
-    >
+    <View className="flex-1 bg-white">
       {/* Custom Header */}
-      <View className="px-5 py-4 border-b border-gray-200 flex-row items-center">
+      <View
+        className="px-5 py-4 border-b border-gray-200 flex-row items-center"
+        style={{ paddingTop: StatusBar.currentHeight || 20 }}
+      >
         <TouchableOpacity
           onPress={() => navigation.goBack()}
-          className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
+          className="w-10 h-10 items-center justify-center"
         >
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={28} color="#000" />
         </TouchableOpacity>
 
         <Text className="text-xl font-bold text-gray-900 flex-1 text-center">
@@ -68,56 +68,90 @@ export default function EditProfileScreen() {
       </View>
 
       {/* Content */}
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}>
         {/* Name */}
-        <Text className="text-gray-700 mb-2">Name</Text>
-        <TextInput
-          value={displayName}
-          onChangeText={setDisplayName}
-          className="border border-gray-200 rounded-lg p-3 mb-4"
-          placeholder="Your name"
-        />
+        <View className="mb-4">
+          <Text className="text-sm font-semibold text-gray-900 mb-2">Full Name</Text>
+          <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+            <Ionicons name="person-outline" size={20} color="#496c60" />
+            <TextInput
+              value={displayName}
+              onChangeText={setDisplayName}
+              className="flex-1 ml-3 text-gray-900"
+              placeholder="Enter your name"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        </View>
 
-        {/* Birth Date */}
-        <Text className="text-gray-700 mb-2">Birth Date</Text>
-        <TextInput
-          value={birthDate}
-          onChangeText={setBirthDate}
-          className="border border-gray-200 rounded-lg p-3 mb-4"
-          placeholder="YYYY-MM-DD"
-        />
-
-        {/* Gender */}
-        <Text className="text-gray-700 mb-2">Gender</Text>
-        <TextInput
-          value={gender}
-          onChangeText={setGender}
-          className="border border-gray-200 rounded-lg p-3 mb-4"
-          placeholder="Male / Female / Other"
-        />
         {/* Email */}
-        <Text className="text-gray-700 mb-2">Email</Text>
-        <TextInput
-          value={email}
-          editable={false}
-          className="border border-gray-200 rounded-lg p-3 mb-4 bg-gray-100"
-        />
+        <View className="mb-4">
+          <Text className="text-sm font-semibold text-gray-900 mb-2">Email Address</Text>
+          <View className="flex-row items-center bg-gray-100 rounded-xl px-4 py-3 border border-gray-200">
+            <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+            <TextInput
+              value={email}
+              editable={false}
+              className="flex-1 ml-3 text-gray-500"
+              placeholderTextColor="#9CA3AF"
+            />
+            <Ionicons name="lock-closed-outline" size={16} color="#9CA3AF" />
+          </View>
+        </View>
 
         {/* Phone Number */}
-        <Text className="text-gray-700 mb-2">Phone Number</Text>
-        <TextInput
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-          className="border border-gray-200 rounded-lg p-3 mb-4"
-          placeholder="Phone Number"
-          keyboardType="phone-pad"
-        />
+        <View className="mb-4">
+          <Text className="text-sm font-semibold text-gray-900 mb-2">Phone Number</Text>
+          <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+            <Ionicons name="call-outline" size={20} color="#496c60" />
+            <TextInput
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              className="flex-1 ml-3 text-gray-900"
+              placeholder="Enter phone number"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="phone-pad"
+            />
+          </View>
+        </View>
 
+        {/* Birth Date */}
+        <View className="mb-4">
+          <Text className="text-sm font-semibold text-gray-900 mb-2">Date of Birth</Text>
+          <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+            <Ionicons name="calendar-outline" size={20} color="#496c60" />
+            <TextInput
+              value={birthDate}
+              onChangeText={setBirthDate}
+              className="flex-1 ml-3 text-gray-900"
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        </View>
+
+        {/* Gender */}
+        <View className="mb-6">
+          <Text className="text-sm font-semibold text-gray-900 mb-2">Gender</Text>
+          <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+            <Ionicons name="male-female-outline" size={20} color="#496c60" />
+            <TextInput
+              value={gender}
+              onChangeText={setGender}
+              className="flex-1 ml-3 text-gray-900"
+              placeholder="Male / Female / Other"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        </View>
+
+        {/* Save Button */}
         <TouchableOpacity
           onPress={handleSave}
-          className="bg-blue-500 rounded-lg py-2 px-6 items-center"
+          className="rounded-2xl py-4 items-center shadow-sm"
+          style={{ backgroundColor: "#496c60" }}
         >
-          <Text className="text-white font-semibold">Save</Text>
+          <Text className="text-white font-bold text-base">Save Changes</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
