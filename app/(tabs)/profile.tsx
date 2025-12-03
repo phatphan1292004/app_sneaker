@@ -134,7 +134,7 @@ export default function ProfileScreen() {
         {/* Order History */}
         <TouchableOpacity
           className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/ordersHistory" as any)}
+          onPress={() => router.push("/profile/orders_history" as any)}
         >
           <Ionicons
             name="receipt-outline"
