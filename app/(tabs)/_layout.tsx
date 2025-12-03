@@ -1,9 +1,9 @@
 import CustomTabBar from "@/components/CustomTabBar";
+import BrandIcon from "@/components/icons/BrandIcon";
 import CartIcon from "@/components/icons/CartIcon";
 import FavIcon from "@/components/icons/FavIcon";
 import HomeIcon from "@/components/icons/HomeIcon";
 import ProfileIcon from "@/components/icons/ProfileIcon";
-import SearchIcon from "@/components/icons/SearchIcon";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Tabs } from "expo-router";
 import React from "react";
@@ -32,12 +32,12 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="search"
+        name="brand"
         options={{
-          title: "Tìm kiếm",
-          tabBarLabel: "Search",
+          title: "Thương hiệu",
+          tabBarLabel: "Brand",
           tabBarIcon: ({ color, size }) => (
-            <SearchIcon width={size} height={size} stroke={color} />
+            <BrandIcon width={size} height={size} stroke={color} />
           ),
         }}
       />
@@ -50,6 +50,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <CartIcon width={size} height={size} stroke={color} />
           ),
+          tabBarStyle: { display: "none" },
         }}
       />
 

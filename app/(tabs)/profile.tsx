@@ -92,7 +92,7 @@ export default function ProfileScreen() {
         {/* Edit Profile */}
         <TouchableOpacity
           className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/edit")}
+          onPress={() => router.push("/profile/edit" as any)}
         >
           <Ionicons
             name="create-outline"
@@ -106,7 +106,7 @@ export default function ProfileScreen() {
         {/* Address */}
         <TouchableOpacity
           className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/address")}
+          onPress={() => router.push("/profile/address" as any)}
         >
           <Ionicons
             name="location-outline"
@@ -120,7 +120,7 @@ export default function ProfileScreen() {
         {/* Notifications */}
         <TouchableOpacity
           className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/notifications")}
+          onPress={() => router.push("/profile/notifications" as any)}
         >
           <Ionicons
             name="notifications-outline"
@@ -134,7 +134,7 @@ export default function ProfileScreen() {
         {/* Order History */}
         <TouchableOpacity
           className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/ordersHistory")}
+          onPress={() => router.push("/profile/ordersHistory" as any)}
         >
           <Ionicons
             name="receipt-outline"
@@ -148,7 +148,7 @@ export default function ProfileScreen() {
         {/* Contact Support */}
         <TouchableOpacity
           className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/support")}
+          onPress={() => router.push("/profile/support" as any)}
         >
           <Ionicons
             name="help-circle-outline"
