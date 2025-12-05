@@ -17,6 +17,14 @@ export default function ProductCard({
   price,
   image,
 }: ProductCardProps) {
+  // Format giá tiền VND
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(price);
+  };
+
   return (
     <TouchableOpacity
       className="w-[48%] bg-white rounded-2xl p-2 mb-4"
@@ -32,14 +40,20 @@ export default function ProductCard({
         className="w-full h-32 rounded-xl mb-3"
         resizeMode="cover"
       />
-      <Text className="text-xs text-gray-500 mb-1">{brand}</Text>
+      {brand && (
+        <Text className="text-xs text-gray-500 mb-1 uppercase font-medium">
+          {brand}
+        </Text>
+      )}
       <Text
         className="text-sm font-semibold text-gray-900 mb-2"
         numberOfLines={2}
       >
         {name}
       </Text>
-      <Text className="text-base font-bold text-gray-900">USD {price}</Text>
+      <Text className="text-base font-bold" style={{ color: "#496c60" }}>
+        {formatPrice(price)}
+      </Text>
     </TouchableOpacity>
   );
 }

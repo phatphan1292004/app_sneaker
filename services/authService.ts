@@ -6,6 +6,7 @@ import {
   User,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
+import { userService } from "./user_service";
 
 export interface RegisterData {
   username: string;
@@ -21,7 +22,7 @@ export interface LoginData {
 // Đăng ký người dùng mới
 export const registerUser = async (data: RegisterData): Promise<User> => {
   try {
-    console.log("Creating user with email:", data.email);
+    // 1. Tạo user trong Firebase
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       data.email,
@@ -29,14 +30,25 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
     );
 
     const user = userCredential.user;
-    console.log("User created:", user.uid);
 
-    // Cập nhật display name
-    console.log("Updating profile...");
+    // 2. Cập nhật profile trong Firebase
     await updateProfile(user, {
       displayName: data.username,
     });
-    console.log("Profile updated");
+
+    // 3. Sync user data xuống MongoDB
+    try {
+      await userService.createUser({
+        firebaseUid: user.uid,
+        username: data.username,
+        email: data.email,
+        avatar: user.photoURL || undefined,
+      });
+      console.log("User synced to MongoDB successfully");
+    } catch (syncError) {
+      console.error("Failed to sync user to MongoDB:", syncError);
+    }
+
     return user;
   } catch (error: any) {
     console.error("Registration error details:", error);

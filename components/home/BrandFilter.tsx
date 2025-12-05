@@ -1,37 +1,42 @@
+import { useRouter } from "expo-router";
 import React from "react";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 interface Brand {
   name: string;
+  slug: string;
   logo: string | null;
 }
 
 interface BrandFilterProps {
   brands: Brand[];
-  selectedBrand: string;
-  onBrandSelect: (brandName: string) => void;
 }
 
-export default function BrandFilter({
-  brands,
-  selectedBrand,
-  onBrandSelect,
-}: BrandFilterProps) {
+export default function BrandFilter({ brands }: BrandFilterProps) {
+  const router = useRouter();
+
+  const handleBrandPress = (slug: string) => {
+    router.push({
+      pathname: "/(tabs)/brand",
+      params: { slug },
+    });
+  };
+
   return (
     <View className="mb-4 px-5">
       <View className="flex-row items-center justify-between mb-3">
         <Text className="text-lg font-bold text-gray-900">Popular Brand</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/(tabs)/brand")}>
           <Text className="text-sm" style={{ color: "#496c60" }}>
-            See all
+            See all →
           </Text>
         </TouchableOpacity>
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {brands.map((brand) => (
           <TouchableOpacity
-            key={brand.name}
-            onPress={() => onBrandSelect(brand.name)}
+            key={brand.slug}
+            onPress={() => handleBrandPress(brand.slug)}
             className="mr-3 items-center"
           >
             <View
@@ -39,28 +44,18 @@ export default function BrandFilter({
               style={{
                 width: 55,
                 height: 55,
-                backgroundColor:
-                  selectedBrand === brand.name ? "#e8f5e9" : "#f5f5f5",
-                borderWidth: selectedBrand === brand.name ? 1 : 0,
-                borderColor: "#496c60",
+                backgroundColor: "#f5f5f5",
               }}
             >
-              {brand.logo ? (
+              {brand.logo && (
                 <Image
                   source={{ uri: brand.logo }}
                   style={{ width: 40, height: 40 }}
                   resizeMode="contain"
                 />
-              ) : (
-                <Text className="text-xl font-bold text-gray-400">All</Text>
               )}
             </View>
-            <Text
-              className="text-xs mt-1 font-medium"
-              style={{
-                color: selectedBrand === brand.name ? "#496c60" : "#6b7280",
-              }}
-            >
+            <Text className="text-xs mt-1 font-medium text-gray-700">
               {brand.name}
             </Text>
           </TouchableOpacity>

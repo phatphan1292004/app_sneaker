@@ -1,14 +1,7 @@
 import ProductCard from "@/components/product/product_card";
+import { Product } from "@/services/product_service";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  image: string;
-}
 
 interface ProductSectionProps {
   title: string;
@@ -31,16 +24,22 @@ export default function ProductSection({
       </View>
       <View className="px-5">
         <View className="flex-row flex-wrap justify-between">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id}
-              name={product.name}
-              brand={product.brand}
-              price={product.price}
-              image={product.image}
-            />
-          ))}
+          {products.map((product) => {
+            const brandName = typeof product.brand_id === 'object' 
+              ? product.brand_id.name 
+              : '';
+            
+            return (
+              <ProductCard
+                key={product._id}
+                id={product._id}
+                brand={brandName}
+                name={product.name}
+                price={product.base_price}
+                image={product.images[0]}
+              />
+            );
+          })}
         </View>
       </View>
     </View>

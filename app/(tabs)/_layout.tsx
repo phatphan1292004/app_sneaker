@@ -4,12 +4,10 @@ import CartIcon from "@/components/icons/CartIcon";
 import FavIcon from "@/components/icons/FavIcon";
 import HomeIcon from "@/components/icons/HomeIcon";
 import ProfileIcon from "@/components/icons/ProfileIcon";
-import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Tabs } from "expo-router";
 import React from "react";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
 
   return (
     <Tabs
