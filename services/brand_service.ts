@@ -3,15 +3,20 @@ import api from './api';
 export interface Brand {
   _id: string;
   name: string;
+  slug: string;
   logo?: string;
   description?: string;
 }
 
+interface BrandResponse {
+  success: boolean;
+  data: Brand[];
+}
+
 // Brand Service
 export const brandService = {
-  // Lấy tất cả brands
-  getAllBrands: async (): Promise<Brand[]> => {
-    const response = await api.get('/brands');
+  getAllBrands: async (): Promise<BrandResponse> => {
+    const response = await api.get('/brand');
     return response.data;
   },
 };

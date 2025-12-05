@@ -23,21 +23,12 @@ export default function ProfileScreen() {
   }, [user, loading]);
 
   const handleLogout = async () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        onPress: async () => {
-          try {
-            await logoutUser();
-            router.replace("/auth/login");
-          } catch (error: any) {
-            Alert.alert("Error", error.message);
-          }
-        },
-        style: "destructive",
-      },
-    ]);
+    try {
+      await logoutUser();
+      router.replace("/auth/login");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
   };
 
   if (loading) {
