@@ -1,16 +1,28 @@
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
+import { orderService } from "@/services/order_service";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StatusBar,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 export default function CheckoutScreen() {
+  const { items, getTotalItems, getTotalPrice, clearCart } = useCart();
+  const { user } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string>("card");
+  const [loading, setLoading] = useState(false);
+  
+  const subtotal = getTotalPrice();
+  const shipping = 0;
+  const total = subtotal + shipping;
 
   const paymentMethods = [
     {
@@ -39,8 +51,63 @@ export default function CheckoutScreen() {
     },
   ];
 
-  const handlePlaceOrder = () => {
-    console.log("Order placed with payment method:", selectedPayment);
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      Alert.alert('Error', 'Please login to place order');
+      router.push('/auth/login');
+      return;
+    }
+
+    if (items.length === 0) {
+      Alert.alert('Error', 'Your cart is empty');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      const orderData = {
+        user_id: user.uid,
+        items: items.map(item => ({
+          product_id: item.productId,
+          variant_id: item.variantId,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        shipping_address: {
+          street: '123 Main Street, District 1',
+          city: 'Ho Chi Minh City',
+          country: 'Vietnam',
+        },
+        payment_method: selectedPayment,
+        total_amount: total,
+      };
+
+      const response = await orderService.createOrder(orderData);
+      
+      if (response.success) {
+        console.log('✅ Order created:', response.data);
+        clearCart();
+        Alert.alert(
+          'Success',
+          'Order placed successfully!',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.push('/(tabs)'),
+            },
+          ]
+        );
+      }
+    } catch (error: any) {
+      console.error('❌ Error creating order:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to place order. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -92,8 +159,8 @@ export default function CheckoutScreen() {
           </Text>
           <View className="bg-gray-50 rounded-2xl p-4">
             <View className="flex-row justify-between mb-2">
-              <Text className="text-gray-600">Subtotal (2 items)</Text>
-              <Text className="text-gray-900 font-semibold">$128.97</Text>
+              <Text className="text-gray-600">Subtotal ({getTotalItems()} items)</Text>
+              <Text className="text-gray-900 font-semibold">{subtotal.toLocaleString()} đ</Text>
             </View>
             <View className="flex-row justify-between mb-3">
               <Text className="text-gray-600">Shipping</Text>
@@ -102,7 +169,7 @@ export default function CheckoutScreen() {
             <View className="h-px bg-gray-200 my-2" />
             <View className="flex-row justify-between">
               <Text className="font-bold text-gray-900 text-lg">Total</Text>
-              <Text className="font-bold text-gray-900 text-xl">$128.97</Text>
+              <Text className="font-bold text-gray-900 text-xl">{total.toLocaleString()} đ</Text>
             </View>
           </View>
         </View>
@@ -164,10 +231,17 @@ export default function CheckoutScreen() {
       >
         <TouchableOpacity
           onPress={handlePlaceOrder}
+          disabled={loading || items.length === 0}
           className="rounded-2xl py-4 items-center"
-          style={{ backgroundColor: "#496c60" }}
+          style={{ 
+            backgroundColor: loading || items.length === 0 ? "#9CA3AF" : "#496c60" 
+          }}
         >
-          <Text className="text-white font-bold text-base">Place Order</Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white font-bold text-base">Place Order</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

@@ -34,7 +34,7 @@ export default function HomeScreen() {
       </View>
     );
   }
-
+  
   return (
     <View className="flex-1 bg-gray-100 mt-5">
       <ScrollView showsVerticalScrollIndicator={false}>

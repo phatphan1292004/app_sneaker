@@ -1,9 +1,9 @@
-import CustomTabBar from "@/components/CustomTabBar";
 import BrandIcon from "@/components/icons/BrandIcon";
 import CartIcon from "@/components/icons/CartIcon";
 import FavIcon from "@/components/icons/FavIcon";
 import HomeIcon from "@/components/icons/HomeIcon";
 import ProfileIcon from "@/components/icons/ProfileIcon";
+import CustomTabBar from "@/components/tabbar/CustomTabBar";
 import { Tabs } from "expo-router";
 import React from "react";
 

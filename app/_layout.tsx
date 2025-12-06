@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import { useColorScheme } from "@/hooks/use-color-scheme.web";
 import {
   Inter_400Regular,
@@ -58,17 +59,19 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false}} />
-          <Stack.Screen name="product" options={{ headerShown: false }} />
-          <Stack.Screen name="auth" options={{headerShown: false}} />
-          <Stack.Screen name="checkout" options={{ headerShown: false }} />
-          <Stack.Screen name="profile/orders_history" options={{ headerShown: false }} />
-          <Stack.Screen name="profile/address" options={{ headerShown: false }} />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <CartProvider>
+        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false}} />
+            <Stack.Screen name="product" options={{ headerShown: false }} />
+            <Stack.Screen name="auth" options={{headerShown: false}} />
+            <Stack.Screen name="checkout" options={{ headerShown: false }} />
+            <Stack.Screen name="profile/orders_history" options={{ headerShown: false }} />
+            <Stack.Screen name="profile/address" options={{ headerShown: false }} />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }

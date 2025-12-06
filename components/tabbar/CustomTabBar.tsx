@@ -1,3 +1,4 @@
+import { useCart } from "@/contexts/CartContext";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -7,12 +8,16 @@ export default function CustomTabBar({
   descriptors,
   navigation,
 }: BottomTabBarProps) {
+  const { getTotalItems } = useCart();
+  const cartItemsCount = getTotalItems();
+
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.index === index;
+          const isCartTab = route.name === "cart";
 
           const onPress = () => {
             const event = navigation.emit({
@@ -38,12 +43,19 @@ export default function CustomTabBar({
               ]}
               activeOpacity={0.7}
             >
-              <View>
+              <View style={{ position: "relative" }}>
                 {options.tabBarIcon?.({
                   focused: isFocused,
                   color: isFocused ? "#496c60" : color,
                   size: 20,
                 })}
+                {isCartTab && cartItemsCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {cartItemsCount > 99 ? "99+" : cartItemsCount}
+                    </Text>
+                  </View>
+                )}
               </View>
               {isFocused && (
                 <Text style={styles.tabLabelFocused}>
@@ -101,5 +113,22 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#496c60",
     marginLeft: 6,
+  },
+  badge: {
+    position: "absolute",
+    top: -6,
+    right: -8,
+    backgroundColor: "#ef4444",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
   },
 });
