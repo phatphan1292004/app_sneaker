@@ -58,7 +58,7 @@ export default function CustomTabBar({
                 )}
               </View>
               {isFocused && (
-                <Text style={styles.tabLabelFocused}>
+                <Text style={styles.tabLabelFocused} numberOfLines={1}>
                   {(options.tabBarLabel as string) || route.name}
                 </Text>
               )}
@@ -92,16 +92,16 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     borderRadius: 8,
   },
   tabButtonFocused: {
     backgroundColor: "#d1e7dd",
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
   },
   tabLabel: {
     fontSize: 11,
@@ -109,19 +109,20 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tabLabelFocused: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "600",
     color: "#496c60",
-    marginLeft: 6,
+    marginTop: 0,
+    textAlign: "center",
   },
   badge: {
     position: "absolute",
-    top: -6,
-    right: -8,
+    top: -2,
+    right: -4,
     backgroundColor: "#ef4444",
     borderRadius: 10,
-    minWidth: 18,
-    height: 18,
+    minWidth: 14,
+    height: 14,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 4,

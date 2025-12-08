@@ -26,6 +26,7 @@ export interface Product {
   sold: number;
   favorites: number;
   images: string[];
+  discount?: number;
   createdAt: string;
   variants?: ProductVariant[];
 }

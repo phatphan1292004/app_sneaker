@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import React from "react";
-import { Image, Text, TouchableOpacity } from "react-native";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
 interface ProductCardProps {
   id: string;
@@ -8,6 +8,7 @@ interface ProductCardProps {
   brand: string;
   price: number;
   image: string;
+  discount?: number;
 }
 
 export default function ProductCard({
@@ -16,15 +17,8 @@ export default function ProductCard({
   brand,
   price,
   image,
+  discount,
 }: ProductCardProps) {
-  // Format giá tiền VND
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-    }).format(price);
-  };
-
   return (
     <TouchableOpacity
       className="w-[48%] bg-white rounded-2xl p-2 mb-4"
@@ -51,9 +45,18 @@ export default function ProductCard({
       >
         {name}
       </Text>
-      <Text className="text-base font-bold" style={{ color: "#496c60" }}>
-        {formatPrice(price)}
-      </Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-base font-bold" style={{ color: "#496c60" }}>
+          {price.toLocaleString()} đ
+        </Text>
+        {discount && discount > 0 && (
+          <View className="bg-[#d1e7dd]  px-2 py-1 rounded">
+            <Text className="text-xs font-semibold" style={{ color: "#496c60" }}>
+              -{discount}%
+            </Text>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }

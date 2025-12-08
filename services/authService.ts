@@ -9,7 +9,7 @@ import { auth } from "../config/firebase";
 import { userService } from "./user_service";
 
 export interface RegisterData {
-  username: string;
+  name: string;
   email: string;
   password: string;
 }
@@ -33,14 +33,14 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
 
     // 2. Cập nhật profile trong Firebase
     await updateProfile(user, {
-      displayName: data.username,
+      displayName: data.name,
     });
 
     // 3. Sync user data xuống MongoDB
     try {
       await userService.createUser({
         firebaseUid: user.uid,
-        username: data.username,
+        username: data.name,
         email: data.email,
         avatar: user.photoURL || undefined,
       });

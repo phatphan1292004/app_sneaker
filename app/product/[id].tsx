@@ -6,7 +6,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Dimensions,
   Image,
   ScrollView,
@@ -14,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
 
@@ -41,16 +41,18 @@ export default function ProductDetailScreen() {
   // Get sizes filtered by selected color
   const availableSizes = useMemo(() => {
     if (!product?.variants) return [];
-    
+
     // If a color is selected, only show sizes for that color
     if (selectedColor) {
-      return [...new Set(
-        product.variants
-          .filter(v => v.color === selectedColor)
-          .map(v => v.size)
-      )].sort();
+      return [
+        ...new Set(
+          product.variants
+            .filter((v) => v.color === selectedColor)
+            .map((v) => v.size)
+        ),
+      ].sort();
     }
-    
+
     // If no color selected, show all sizes
     return [...new Set(product.variants.map((v) => v.size))].sort();
   }, [product, selectedColor]);
@@ -87,21 +89,24 @@ export default function ProductDetailScreen() {
   // Handle add to cart
   const handleAddToCart = () => {
     if (!product) return;
-    
-    if (!selectedColor) {
-      Alert.alert("Missing Selection", "Please select a color");
-      return;
-    }
-    if (!selectedSize) {
-      Alert.alert("Missing Selection", "Please select a size");
-      return;
-    }
+
     if (!selectedVariant) {
-      Alert.alert("Error", "Selected variant not available");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Selected variant not available",
+        position: "bottom",
+      });
       return;
     }
+
     if (selectedVariant.stock <= 0) {
-      Alert.alert("Out of Stock", "This variant is currently out of stock");
+      Toast.show({
+        type: "error",
+        text1: "Out of Stock",
+        text2: "This variant is currently unavailable",
+        position: "bottom",
+      });
       return;
     }
 
@@ -116,14 +121,12 @@ export default function ProductDetailScreen() {
       price: selectedVariant.price,
     });
 
-    Alert.alert(
-      "Added to Cart",
-      `${product.name} (${selectedColor}, Size ${selectedSize}) has been added to your cart`,
-      [
-        { text: "Continue Shopping", style: "cancel" },
-        { text: "View Cart", onPress: () => router.push("/(tabs)/cart") },
-      ]
-    );
+    Toast.show({
+      type: "success",
+      text1: "Added to Cart",
+      text2: `${product.name} (${selectedColor}, Size ${selectedSize}) has been added.`,
+      position: "bottom",
+    });
   };
 
   if (loading) {
@@ -164,6 +167,14 @@ export default function ProductDetailScreen() {
           >
             <Ionicons name="chevron-back" size={24} color="#000" />
           </TouchableOpacity>
+
+          <Image
+            source={{
+              uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+            }}
+            className="w-14 h-14 rounded-lg"
+          />
+
           <TouchableOpacity
             onPress={() => setIsFavorite(!isFavorite)}
             className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
@@ -234,8 +245,10 @@ export default function ProductDetailScreen() {
 
         {/* Product Info */}
         <View className="px-5 pt-10">
-          <Text className="text-sm text-gray-500 mb-4 font-semibold color-[#496c60]">{brandName}</Text>
-          <Text className="text-2xl font-bold text-gray-900 mb-3">
+          <Text className="text-sm text-gray-500 mb-2 font-semibold color-[#496c60]">
+            {brandName}
+          </Text>
+          <Text className="text-2xl font-bold text-gray-900 mb-6">
             {product.name}
           </Text>
 
@@ -451,8 +464,8 @@ export default function ProductDetailScreen() {
             {!selectedVariant
               ? "Select Options"
               : selectedVariant.stock <= 0
-              ? "Out of Stock"
-              : "Add to Cart"}
+                ? "Out of Stock"
+                : "Add to Cart"}
           </Text>
         </TouchableOpacity>
       </View>
