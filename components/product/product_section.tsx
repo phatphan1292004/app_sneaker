@@ -37,6 +37,7 @@ export default function ProductSection({
                 name={product.name}
                 price={product.base_price}
                 image={product.images[0]}
+                discount={product.discount}
               />
             );
           })}

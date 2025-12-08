@@ -24,6 +24,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import Toast from "react-native-toast-message";
 import "./global.css";
 
 // Prevent auto-hiding splash screen
@@ -72,6 +73,7 @@ export default function RootLayout() {
           <StatusBar style="auto" />
         </ThemeProvider>
       </CartProvider>
+      <Toast position="bottom"/>
     </AuthProvider>
   );
 }

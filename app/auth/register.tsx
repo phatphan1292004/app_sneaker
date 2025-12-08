@@ -4,53 +4,63 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!username || !email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+    if (!name || !email || !password) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please fill in all fields",
+      });
       return;
     }
 
     if (!acceptTerms) {
-      Alert.alert("Error", "Please accept terms and conditions");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please accept terms and conditions",
+      });
       return;
     }
 
     setLoading(true);
     try {
       console.log("Starting registration...");
-      await registerUser({ username, email, password });
+      await registerUser({ name, email, password });
       console.log("Registration successful!");
       setLoading(false);
-      Alert.alert(
-        "Success", 
-        "Account created successfully! Please sign in.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.replace("/auth/login")
-          }
-        ]
-      );
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Account created successfully! Please sign in.",
+      });
+      setTimeout(() => {
+        router.replace("/auth/login");
+      }, 1500);
     } catch (error: any) {
       console.error("Registration error:", error);
       setLoading(false);
-      Alert.alert("Registration Failed", error.message || "An error occurred");
+      Toast.show({
+        type: "error",
+        text1: "Registration Failed",
+        text2: error.message || "An error occurred",
+      });
     }
   };
 
@@ -75,10 +85,10 @@ export default function RegisterScreen() {
         {/* Input Fields */}
         <View className="mb-6">
           <TextInput
-            placeholder="Enter Username"
+            placeholder="Enter Name"
             placeholderTextColor="#9ca3af"
-            value={username}
-            onChangeText={setUsername}
+            value={name}
+            onChangeText={setName}
             className="bg-gray-50 rounded-xl px-4 py-4 text-gray-900 mb-4"
           />
 
