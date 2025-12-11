@@ -1,0 +1,34 @@
+import { productService } from "@/services/product_service";
+import { useEffect, useState } from "react";
+
+export function useProducts(filters: any) {
+  const [products, setProducts] = useState<any[]>([]);
+
+  const fetchProducts = async () => {
+    try {
+      const params: any = {};
+      if (filters.selectedBrand !== "ALL") params.brand = filters.selectedBrand;
+      if (filters.selectedPrice !== "ALL") params.price = filters.selectedPrice;
+      if (filters.selectedSize !== "ALL") params.size = filters.selectedSize;
+      if (filters.selectedColor !== "ALL") params.color = filters.selectedColor;
+      if (filters.selectedSort !== "NONE") params.sort = filters.selectedSort;
+
+      const res = await productService.getAllProducts(params);
+      setProducts(res.data);
+    } catch (error) {
+      console.error("Failed to fetch products", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [
+    filters.selectedBrand,
+    filters.selectedPrice,
+    filters.selectedSize,
+    filters.selectedColor,
+    filters.selectedSort,
+  ]);
+
+  return products;
+}

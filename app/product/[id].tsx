@@ -445,9 +445,14 @@ export default function ProductDetailScreen() {
       >
         <View className="flex-1 px-5 py-4" style={{ borderColor: "#496c60" }}>
           <Text className="font-bold text-lg" style={{ color: "#496c60" }}>
-            {formatPrice(product.base_price)}
+            {
+              selectedVariant
+                ? formatPrice(selectedVariant.price) // Giá của variant đã chọn
+                : formatPrice(product.base_price) // Giá mặc định
+            }
           </Text>
         </View>
+
         <TouchableOpacity
           onPress={handleAddToCart}
           disabled={!selectedVariant || selectedVariant.stock <= 0}
