@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 export interface Brand {
   _id: string;
@@ -16,7 +16,7 @@ interface BrandResponse {
 // Brand Service
 export const brandService = {
   getAllBrands: async (): Promise<BrandResponse> => {
-    const response = await api.get('/brand');
+    const response = await api.get("/brand");
     return response.data;
   },
 };

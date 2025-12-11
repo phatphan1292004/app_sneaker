@@ -1,5 +1,5 @@
 import ProductCard from "@/components/product/product_card";
-import React, { useState } from "react";
+import React from "react";
 import {
   Image,
   ScrollView,
@@ -9,97 +9,79 @@ import {
   View,
 } from "react-native";
 
-interface Brand {
-  id: string;
-  name: string;
-  logo: string;
-}
+import { useBrands } from "@/hooks/useBrandFilters";
+import { useFilters } from "@/hooks/useFilters";
+import { useProducts } from "@/hooks/useProductsFilters";
 
 export default function BrandScreen() {
-  const [selectedBrand, setSelectedBrand] = useState<string>("ALL");
+  const brands = useBrands();
+  const filters = useFilters();
+  const products = useProducts(filters);
 
-  const brands: Brand[] = [
-    {
-      id: "ALL",
-      name: "ALL",
-      logo: "https://via.placeholder.com/60/e5e7eb/666666?text=ALL",
-    },
-    {
-      id: "NIKE",
-      name: "NIKE",
-      logo: "https://via.placeholder.com/60/ffffff/000000?text=NIKE",
-    },
-    {
-      id: "ADIDAS",
-      name: "ADIDAS",
-      logo: "https://via.placeholder.com/60/ffffff/0066b2?text=ADIDAS",
-    },
-    {
-      id: "PUMA",
-      name: "PUMA",
-      logo: "https://via.placeholder.com/60/ffffff/000000?text=PUMA",
-    },
-    {
-      id: "REEBOK",
-      name: "REEBOK",
-      logo: "https://via.placeholder.com/60/ffffff/ee1c25?text=REEBOK",
-    },
-    {
-      id: "VANS",
-      name: "VANS",
-      logo: "https://via.placeholder.com/60/000000/ffffff?text=VANS",
-    },
+  const priceOptions = [
+    { label: "ALL", id: "ALL" },
+    { label: "Under 1.000.000đ", id: "UNDER_1000" },
+    { label: "1.000.000đ - 3.000.000đ", id: "1000_3000" },
+    { label: "Over 3.000.000đ", id: "OVER_3000" },
   ];
 
-  const products = [
-    {
-      id: "1",
-      name: "Nike Air Max 270",
-      price: 150,
-      brand: "NIKE",
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300",
-    },
-    {
-      id: "2",
-      name: "Adidas Ultraboost",
-      price: 180,
-      brand: "ADIDAS",
-      image: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=300",
-    },
-    {
-      id: "3",
-      name: "Puma RS-X",
-      price: 120,
-      brand: "PUMA",
-      image: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=300",
-    },
-    {
-      id: "4",
-      name: "Reebok Classic",
-      price: 100,
-      brand: "REEBOK",
-      image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=300",
-    },
-    {
-      id: "5",
-      name: "Vans Old Skool",
-      price: 65,
-      brand: "VANS",
-      image: "https://images.unsplash.com/photo-1543508282-6319a3e2621f?w=300",
-    },
-    {
-      id: "6",
-      name: "Nike React Infinity",
-      price: 160,
-      brand: "NIKE",
-      image: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=300",
-    },
+  const sortOptions = [
+    { id: "NONE", label: "Default" },
+    { id: "LOW_HIGH", label: "Price: Low → High" },
+    { id: "HIGH_LOW", label: "Price: High → Low" },
   ];
 
-  const filteredProducts =
-    selectedBrand === "ALL"
-      ? products
-      : products.filter((p) => p.brand === selectedBrand);
+  const sizeOptions = [
+    { id: "ALL", label: "All Sizes" },
+    { id: "40", label: "40" },
+    { id: "41", label: "41" },
+    { id: "42", label: "42" },
+    { id: "43", label: "43" },
+    { id: "44", label: "44" },
+  ];
+
+  const colorOptions = [
+    { id: "ALL", label: "All Colors" },
+    { id: "Black", label: "Black" },
+    { id: "White", label: "White" },
+    { id: "Red", label: "Red" },
+    { id: "Blue", label: "Blue" },
+    { id: "Green", label: "Green" },
+  ];
+
+  // Hàm render filter
+  const renderFilterOptions = (
+    options: any[],
+    selectedId: string,
+    onSelect: (id: string) => void
+  ) => {
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="mb-3"
+      >
+        {options.map((opt) => (
+          <TouchableOpacity
+            key={opt.id}
+            onPress={() => onSelect(opt.id)}
+            className="px-4 py-2 mr-3 rounded-full border"
+            style={{
+              backgroundColor: selectedId === opt.id ? "#d1e7dd" : "white",
+              borderColor: selectedId === opt.id ? "#496c60" : "#d1d5db",
+            }}
+          >
+            <Text
+              className="text-sm"
+              style={{ color: selectedId === opt.id ? "#496c60" : "#6b7280" }}
+            >
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  };
 
   return (
     <View className="flex-1 bg-white">
@@ -112,36 +94,26 @@ export default function BrandScreen() {
       </View>
 
       <ScrollView className="flex-1">
-        {/* Brand Filter */}
+        {/* BRAND FILTER */}
         <View className="px-5 py-4">
-          <View className="flex-row items-center justify-between mb-3">
-            <Text className="text-base font-semibold text-gray-900">
-              Popular Brand
-            </Text>
-            <TouchableOpacity>
-              <Text className="text-sm font-medium" style={{ color: "#496c60" }}>
-                See all
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="flex-row"
-          >
+          <Text className="text-base font-semibold text-gray-900 mb-3">
+            Popular Brand
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {brands.map((brand) => (
               <TouchableOpacity
-                key={brand.id}
-                onPress={() => setSelectedBrand(brand.id)}
+                key={brand._id}
+                onPress={() => filters.setSelectedBrand(brand._id)}
                 className="items-center mr-4"
               >
                 <View
                   className="w-16 h-16 rounded-full items-center justify-center mb-2"
                   style={{
                     backgroundColor:
-                      selectedBrand === brand.id ? "#d1e7dd" : "#f3f4f6",
-                    borderWidth: selectedBrand === brand.id ? 2 : 0,
+                      filters.selectedBrand === brand._id
+                        ? "#d1e7dd"
+                        : "#f3f4f6",
+                    borderWidth: filters.selectedBrand === brand._id ? 2 : 0,
                     borderColor: "#496c60",
                   }}
                 >
@@ -154,7 +126,10 @@ export default function BrandScreen() {
                 <Text
                   className="text-xs font-medium"
                   style={{
-                    color: selectedBrand === brand.id ? "#496c60" : "#6b7280",
+                    color:
+                      filters.selectedBrand === brand._id
+                        ? "#496c60"
+                        : "#6b7280",
                   }}
                 >
                   {brand.name}
@@ -164,21 +139,56 @@ export default function BrandScreen() {
           </ScrollView>
         </View>
 
-        {/* Products Grid */}
-        <View className="px-5 pb-6">
-          <Text className="text-base font-semibold text-gray-900 mb-4">
-            {selectedBrand === "ALL" ? "All Products" : `${selectedBrand} Products`}
+        {/* FILTERS */}
+        <View className="px-5 mb-4">
+          <Text className="text-base font-semibold text-gray-900 mb-2">
+            Price
           </Text>
+          {renderFilterOptions(
+            priceOptions,
+            filters.selectedPrice,
+            filters.setSelectedPrice
+          )}
 
+          <Text className="text-base font-semibold text-gray-900 mb-2">
+            Sort
+          </Text>
+          {renderFilterOptions(
+            sortOptions,
+            filters.selectedSort,
+            filters.setSelectedSort
+          )}
+
+          <Text className="text-base font-semibold text-gray-900 mb-2">
+            Size
+          </Text>
+          {renderFilterOptions(
+            sizeOptions,
+            filters.selectedSize,
+            filters.setSelectedSize
+          )}
+
+          <Text className="text-base font-semibold text-gray-900 mb-2">
+            Color
+          </Text>
+          {renderFilterOptions(
+            colorOptions,
+            filters.selectedColor,
+            filters.setSelectedColor
+          )}
+        </View>
+
+        {/* PRODUCT LIST */}
+        <View className="px-5 pb-6">
           <View className="flex-row flex-wrap justify-between">
-            {filteredProducts.map((product) => (
+            {products.map((product) => (
               <ProductCard
-                key={product.id}
-                id={product.id}
+                key={product._id}
+                id={product._id}
                 name={product.name}
-                brand={product.brand}
-                price={product.price}
-                image={product.image}
+                brand={product.brand_id?.name}
+                price={product.base_price}
+                image={product.images[0]}
               />
             ))}
           </View>

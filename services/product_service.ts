@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 export interface Brand {
   _id: string;
@@ -43,21 +43,27 @@ interface ProductDetailResponse {
 
 // Product Service
 export const productService = {
+  // Lấy tất cả sản phẩm với filter
+  getAllProducts: async (filters: any = {}): Promise<ProductResponse> => {
+    const response = await api.get("/product", { params: filters });
+    return response.data;
+  },
+
   // Lấy sản phẩm For You (4 sản phẩm có views cao nhất)
   getForYouProducts: async (): Promise<ProductResponse> => {
-    const response = await api.get('/product/foryou');
+    const response = await api.get("/product/foryou");
     return response.data;
   },
 
   // Lấy sản phẩm Popular (4 sản phẩm được yêu thích nhất)
   getPopularProducts: async (): Promise<ProductResponse> => {
-    const response = await api.get('/product/popular');
+    const response = await api.get("/product/popular");
     return response.data;
   },
 
   // Lấy sản phẩm Newest (4 sản phẩm mới nhất)
   getNewestProducts: async (): Promise<ProductResponse> => {
-    const response = await api.get('/product/newest');
+    const response = await api.get("/product/newest");
     return response.data;
   },
 
