@@ -1,3 +1,5 @@
+import AddAddressModal from "@/components/address/AddAddressModal";
+import AddressCard from "@/components/address/AddressCard";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -8,12 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface Address {
   id: string;
   type: string;
-  addressLine1: string;
-  addressLine2: string;
+  street: string;
+  province: string;
+  district: string;
+  ward: string;
   isDefault: boolean;
 }
 
@@ -22,25 +27,49 @@ export default function AddressScreen() {
     {
       id: "1",
       type: "Home",
-      addressLine1: "2118 Thornridge Cir",
-      addressLine2: "Connecticut, San Jose, CA",
+      street: "2118 Thornridge Cir",
+      province: "TP. Hồ Chí Minh",
+      district: "Quận 1",
+      ward: "Phường Bến Nghé",
       isDefault: false,
     },
     {
       id: "2",
       type: "Office",
-      addressLine1: "456 Maplewood Lane",
-      addressLine2: "New Haven, San Francisco, CA",
+      street: "456 Maplewood Lane",
+      province: "Hà Nội",
+      district: "Quận Ba Đình",
+      ward: "Phường Điện Biên",
       isDefault: false,
     },
   ]);
 
-  const handleEdit = (id: string) => {
-    console.log("Edit address:", id);
-  };
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const handleDelete = (id: string) => {
-    setAddresses(addresses.filter((addr) => addr.id !== id));
+  const handleAddAddress = (newAddress: {
+    type: string;
+    street: string;
+    province: string;
+    district: string;
+    ward: string;
+  }) => {
+    const address: Address = {
+      id: Date.now().toString(),
+      type: newAddress.type,
+      street: newAddress.street,
+      province: newAddress.province,
+      district: newAddress.district,
+      ward: newAddress.ward,
+      isDefault: false,
+    };
+
+    setAddresses([...addresses, address]);
+    setIsModalVisible(false);
+    Toast.show({
+      type: "success",
+      text1: "Success",
+      text2: "Address added successfully!",
+    });
   };
 
   return (
@@ -71,41 +100,21 @@ export default function AddressScreen() {
       <ScrollView className="flex-1 px-5 py-4">
         {/* Address Cards */}
         {addresses.map((address) => (
-          <View
+          <AddressCard
             key={address.id}
-            className="mb-4 bg-gray-50 rounded-2xl p-4 relative"
-          >
-            {/* Address Type Icon and Map Icon */}
-            <View className="flex-row items-start justify-between mb-3">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-3">
-                  <Ionicons name="home-outline" size={20} color="#496c60" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-bold text-gray-900 text-base">
-                    {address.type}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity className="w-10 h-10 bg-white rounded-full items-center justify-center">
-                <Ionicons name="location-outline" size={20} color="#496c60" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Address Details */}
-            <View className="ml-13">
-              <Text className="text-gray-900 text-sm mb-1">
-                {address.addressLine1}
-              </Text>
-              <Text className="text-gray-500 text-sm">
-                {address.addressLine2}
-              </Text>
-            </View>
-          </View>
+            type={address.type}
+            street={address.street}
+            ward={address.ward}
+            district={address.district}
+            province={address.province}
+          />
         ))}
 
         {/* Add New Address Button */}
-        <TouchableOpacity className="flex-row items-center justify-center py-4 border border-dashed border-gray-300 rounded-2xl mt-2">
+        <TouchableOpacity 
+          onPress={() => setIsModalVisible(true)}
+          className="flex-row items-center justify-center py-4 border border-dashed border-gray-300 rounded-2xl mt-2"
+        >
           <Ionicons name="add-circle-outline" size={24} color="#496c60" />
           <Text
             className="ml-2 font-semibold text-base"
@@ -115,6 +124,13 @@ export default function AddressScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Add Address Modal */}
+      <AddAddressModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onAdd={handleAddAddress}
+      />
     </View>
   );
 }
