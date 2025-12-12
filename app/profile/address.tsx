@@ -1,8 +1,10 @@
 import AddAddressModal from "@/components/address/AddAddressModal";
 import AddressCard from "@/components/address/AddressCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { addressService } from "@/services/addressService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -13,7 +15,7 @@ import {
 import Toast from "react-native-toast-message";
 
 interface Address {
-  id: string;
+  user_id: string;
   type: string;
   street: string;
   province: string;
@@ -23,30 +25,40 @@ interface Address {
 }
 
 export default function AddressScreen() {
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      type: "Home",
-      street: "2118 Thornridge Cir",
-      province: "TP. Hồ Chí Minh",
-      district: "Quận 1",
-      ward: "Phường Bến Nghé",
-      isDefault: false,
-    },
-    {
-      id: "2",
-      type: "Office",
-      street: "456 Maplewood Lane",
-      province: "Hà Nội",
-      district: "Quận Ba Đình",
-      ward: "Phường Điện Biên",
-      isDefault: false,
-    },
-  ]);
-
+  const { user } = useAuth();
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const handleAddAddress = (newAddress: {
+  // Lấy danh sách địa chỉ khi user thay đổi hoặc khi mount
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user?.uid) return;
+      try {
+        const response = await addressService.getAddressesByUserId(user.uid);
+        if (response.success && response.data) {
+          setAddresses(
+            response.data.map((addr: any) => ({
+              id: addr._id || addr.id,
+              user_id: addr.user_id,
+              type: addr.type,
+              street: addr.street,
+              province: addr.province,
+              district: addr.district,
+              ward: addr.ward,
+              isDefault: addr.isDefault || false,
+            }))
+          );
+        } else {
+          setAddresses([]);
+        }
+      } catch (e) {
+        setAddresses([]);
+      }
+    };
+    fetchAddresses();
+  }, [user?.uid]);
+
+  const handleAddAddress = async (newAddress: {
     type: string;
     street: string;
     province: string;
@@ -54,7 +66,7 @@ export default function AddressScreen() {
     ward: string;
   }) => {
     const address: Address = {
-      id: Date.now().toString(),
+      user_id: user?.uid || "",
       type: newAddress.type,
       street: newAddress.street,
       province: newAddress.province,
@@ -63,13 +75,47 @@ export default function AddressScreen() {
       isDefault: false,
     };
 
-    setAddresses([...addresses, address]);
-    setIsModalVisible(false);
-    Toast.show({
-      type: "success",
-      text1: "Success",
-      text2: "Address added successfully!",
-    });
+    try {
+      const response = await addressService.addAddress(address);
+      if (response.success) {
+        setIsModalVisible(false);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Address added successfully!",
+        });
+        // Sau khi thêm thành công, reload lại danh sách địa chỉ
+        if (user?.uid) {
+          const res = await addressService.getAddressesByUserId(user.uid);
+          if (res.success && res.data) {
+            setAddresses(
+              res.data.map((addr: any) => ({
+                id: addr._id || addr.id,
+                user_id: addr.user_id,
+                type: addr.type,
+                street: addr.street,
+                province: addr.province,
+                district: addr.district,
+                ward: addr.ward,
+                isDefault: addr.isDefault || false,
+              }))
+            );
+          }
+        }
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: response.message || response.error || "Failed to add address",
+        });
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.message || "Failed to add address",
+      });
+    }
   };
 
   return (
@@ -101,17 +147,18 @@ export default function AddressScreen() {
         {/* Address Cards */}
         {addresses.map((address) => (
           <AddressCard
-            key={address.id}
+            key={address.user_id}
             type={address.type}
             street={address.street}
             ward={address.ward}
             district={address.district}
             province={address.province}
+            isDefault={address.isDefault}
           />
         ))}
 
         {/* Add New Address Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => setIsModalVisible(true)}
           className="flex-row items-center justify-center py-4 border border-dashed border-gray-300 rounded-2xl mt-2"
         >

@@ -1,16 +1,17 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { Address, addressService } from "@/services/addressService";
 import { orderService } from "@/services/orderService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    StatusBar,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StatusBar,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -19,6 +20,8 @@ export default function CheckoutScreen() {
   const { user } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState<string>("card");
   const [loading, setLoading] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   const subtotal = getTotalPrice();
   const shipping = 0;
@@ -51,6 +54,40 @@ export default function CheckoutScreen() {
     },
   ];
 
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user?.uid) return;
+      try {
+        const response = await addressService.getAddressesByUserId(user.uid);
+        if (response.success && response.data) {
+          const mapped = response.data.map((addr: any) => ({
+            id: addr._id || addr.id,
+            user_id: addr.user_id,
+            type: addr.type,
+            street: addr.street,
+            province: addr.province,
+            district: addr.district,
+            ward: addr.ward,
+            isDefault: addr.isDefault || false,
+          }));
+          setAddresses(mapped);
+          // Chọn mặc định là địa chỉ đầu tiên hoặc địa chỉ mặc định
+          const defaultAddr = mapped.find((a) => a.isDefault) || mapped[0];
+          setSelectedAddress(defaultAddr || null);
+        } else {
+          setAddresses([]);
+          setSelectedAddress(null);
+        }
+      } catch (e) {
+        setAddresses([]);
+        setSelectedAddress(null);
+      }
+    };
+    fetchAddresses();
+  }, [user?.uid]);
+
+  console.log(addresses);
+
   const handlePlaceOrder = async () => {
     if (!user) {
       Toast.show({
@@ -74,6 +111,17 @@ export default function CheckoutScreen() {
     try {
       setLoading(true);
 
+
+      if (!selectedAddress) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: "Please select a delivery address.",
+        });
+        setLoading(false);
+        return;
+      }
+
       const orderData = {
         user_id: user.uid,
         items: items.map((item) => ({
@@ -83,8 +131,11 @@ export default function CheckoutScreen() {
           price: item.price,
         })),
         shipping_address: {
-          street: "123 Main Street, District 1",
-          city: "Ho Chi Minh City",
+          street: selectedAddress.street,
+          ward: selectedAddress.ward,
+          district: selectedAddress.district,
+          province: selectedAddress.province,
+          city: selectedAddress.province, // hoặc sửa lại nếu có city riêng
           country: "Vietnam",
         },
         payment_method: selectedPayment,
@@ -148,22 +199,46 @@ export default function CheckoutScreen() {
 
         {/* Delivery Address */}
         <View className="mb-6">
-          <Text className="text-lg font-bold text-gray-900 mb-3">
-            Delivery Address
-          </Text>
-          <TouchableOpacity className="bg-gray-50 rounded-2xl p-4">
-            <View className="flex-row items-start justify-between">
-              <View className="flex-1">
-                <Text className="font-semibold text-gray-900 mb-1">
-                  Home Address
-                </Text>
-                <Text className="text-gray-600 text-sm">
-                  123 Main Street, District 1{"\n"}Ho Chi Minh City, Vietnam
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-lg font-bold text-gray-900">
+              Delivery Address
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/profile/address")}
+              className="px-3 py-1 bg-[#496c60] rounded-xl"
+            >
+              <Text className="text-white font-semibold text-base">+</Text>
+            </TouchableOpacity>
+          </View>
+          {addresses.length === 0 ? (
+            <Text className="text-gray-500">No address found. Please add an address.</Text>
+          ) : (
+            <View style={{ maxHeight: 220 }}>
+              <ScrollView>
+                {addresses.map((addr, idx) => (
+                  <TouchableOpacity
+                    key={addr.id}
+                    className={`bg-gray-50 rounded-2xl p-4 mb-2 ${selectedAddress && selectedAddress.id === addr.id ? 'border-2 border-[#496c60]' : ''}`}
+                    onPress={() => setSelectedAddress(addr)}
+                  >
+                    <View className="flex-row items-start justify-between">
+                      <View className="flex-1">
+                        <Text className="font-semibold text-gray-900 mb-1">
+                          {addr.type} {addr.isDefault ? '(Mặc định)' : ''}
+                        </Text>
+                        <Text className="text-gray-600 text-sm">
+                          {addr.street}, {addr.ward}, {addr.district}, {addr.province}
+                        </Text>
+                      </View>
+                      {selectedAddress && selectedAddress.id === addr.id && (
+                        <Ionicons name="checkmark-circle" size={20} color="#496c60" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
-          </TouchableOpacity>
+          )}
         </View>
 
         {/* Order Summary */}

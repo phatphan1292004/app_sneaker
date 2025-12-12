@@ -8,6 +8,7 @@ interface AddressCardProps {
   ward: string;
   district: string;
   province: string;
+  isDefault?: boolean;
 }
 
 export default function AddressCard({
@@ -16,17 +17,23 @@ export default function AddressCard({
   ward,
   district,
   province,
+  isDefault,
 }: AddressCardProps) {
   return (
     <View className="mb-4 bg-gray-50 rounded-2xl p-4 relative">
       {/* Address Type Icon and Map Icon */}
       <View className="flex-row items-start justify-between mb-3">
         <View className="flex-row items-center">
-          <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-3">
+          <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-1">
             <Ionicons name="home-outline" size={20} color="#496c60" />
           </View>
-          <View className="flex-1">
+          <View className="flex-1 flex-row items-center">
             <Text className="font-bold text-gray-900 text-base">{type}</Text>
+            {isDefault && (
+              <View className="ml-2 px-3 py-1 bg-green-100 rounded-lg">
+                <Text className="text-green-700 text-xs font-semibold">Mặc định</Text>
+              </View>
+            )}
           </View>
         </View>
         <TouchableOpacity className="w-10 h-10 bg-white rounded-full items-center justify-center">

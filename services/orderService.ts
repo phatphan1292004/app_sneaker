@@ -12,8 +12,9 @@ export interface CreateOrderData {
   items: OrderItem[];
   shipping_address: {
     street: string;
-    city: string;
-    country: string;
+    province: string;
+    district: string;
+    ward: string;
   };
   payment_method: string;
   total_amount: number;
@@ -25,8 +26,9 @@ export interface Order {
   items: OrderItem[];
   shipping_address: {
     street: string;
-    city: string;
-    country: string;
+    province: string;
+    district: string;
+    ward: string;
   };
   payment_method: string;
   total_amount: number;
