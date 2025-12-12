@@ -1,6 +1,10 @@
+import AddAddressModal from "@/components/address/AddAddressModal";
+import AddressCard from "@/components/address/AddressCard";
+import { useAuth } from "@/contexts/AuthContext";
+import { addressService } from "@/services/addressService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   StatusBar,
@@ -8,39 +12,110 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 interface Address {
-  id: string;
+  user_id: string;
   type: string;
-  addressLine1: string;
-  addressLine2: string;
+  street: string;
+  province: string;
+  district: string;
+  ward: string;
   isDefault: boolean;
 }
 
 export default function AddressScreen() {
-  const [addresses, setAddresses] = useState<Address[]>([
-    {
-      id: "1",
-      type: "Home",
-      addressLine1: "2118 Thornridge Cir",
-      addressLine2: "Connecticut, San Jose, CA",
-      isDefault: false,
-    },
-    {
-      id: "2",
-      type: "Office",
-      addressLine1: "456 Maplewood Lane",
-      addressLine2: "New Haven, San Francisco, CA",
-      isDefault: false,
-    },
-  ]);
+  const { user } = useAuth();
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const handleEdit = (id: string) => {
-    console.log("Edit address:", id);
-  };
+  // Lấy danh sách địa chỉ khi user thay đổi hoặc khi mount
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user?.uid) return;
+      try {
+        const response = await addressService.getAddressesByUserId(user.uid);
+        if (response.success && response.data) {
+          setAddresses(
+            response.data.map((addr: any) => ({
+              id: addr._id || addr.id,
+              user_id: addr.user_id,
+              type: addr.type,
+              street: addr.street,
+              province: addr.province,
+              district: addr.district,
+              ward: addr.ward,
+              isDefault: addr.isDefault || false,
+            }))
+          );
+        } else {
+          setAddresses([]);
+        }
+      } catch (e) {
+        setAddresses([]);
+      }
+    };
+    fetchAddresses();
+  }, [user?.uid]);
 
-  const handleDelete = (id: string) => {
-    setAddresses(addresses.filter((addr) => addr.id !== id));
+  const handleAddAddress = async (newAddress: {
+    type: string;
+    street: string;
+    province: string;
+    district: string;
+    ward: string;
+  }) => {
+    const address: Address = {
+      user_id: user?.uid || "",
+      type: newAddress.type,
+      street: newAddress.street,
+      province: newAddress.province,
+      district: newAddress.district,
+      ward: newAddress.ward,
+      isDefault: false,
+    };
+
+    try {
+      const response = await addressService.addAddress(address);
+      if (response.success) {
+        setIsModalVisible(false);
+        Toast.show({
+          type: "success",
+          text1: "Success",
+          text2: "Address added successfully!",
+        });
+        // Sau khi thêm thành công, reload lại danh sách địa chỉ
+        if (user?.uid) {
+          const res = await addressService.getAddressesByUserId(user.uid);
+          if (res.success && res.data) {
+            setAddresses(
+              res.data.map((addr: any) => ({
+                id: addr._id || addr.id,
+                user_id: addr.user_id,
+                type: addr.type,
+                street: addr.street,
+                province: addr.province,
+                district: addr.district,
+                ward: addr.ward,
+                isDefault: addr.isDefault || false,
+              }))
+            );
+          }
+        }
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: response.message || response.error || "Failed to add address",
+        });
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.message || "Failed to add address",
+      });
+    }
   };
 
   return (
@@ -71,41 +146,22 @@ export default function AddressScreen() {
       <ScrollView className="flex-1 px-5 py-4">
         {/* Address Cards */}
         {addresses.map((address) => (
-          <View
-            key={address.id}
-            className="mb-4 bg-gray-50 rounded-2xl p-4 relative"
-          >
-            {/* Address Type Icon and Map Icon */}
-            <View className="flex-row items-start justify-between mb-3">
-              <View className="flex-row items-center">
-                <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-3">
-                  <Ionicons name="home-outline" size={20} color="#496c60" />
-                </View>
-                <View className="flex-1">
-                  <Text className="font-bold text-gray-900 text-base">
-                    {address.type}
-                  </Text>
-                </View>
-              </View>
-              <TouchableOpacity className="w-10 h-10 bg-white rounded-full items-center justify-center">
-                <Ionicons name="location-outline" size={20} color="#496c60" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Address Details */}
-            <View className="ml-13">
-              <Text className="text-gray-900 text-sm mb-1">
-                {address.addressLine1}
-              </Text>
-              <Text className="text-gray-500 text-sm">
-                {address.addressLine2}
-              </Text>
-            </View>
-          </View>
+          <AddressCard
+            key={address.user_id}
+            type={address.type}
+            street={address.street}
+            ward={address.ward}
+            district={address.district}
+            province={address.province}
+            isDefault={address.isDefault}
+          />
         ))}
 
         {/* Add New Address Button */}
-        <TouchableOpacity className="flex-row items-center justify-center py-4 border border-dashed border-gray-300 rounded-2xl mt-2">
+        <TouchableOpacity
+          onPress={() => setIsModalVisible(true)}
+          className="flex-row items-center justify-center py-4 border border-dashed border-gray-300 rounded-2xl mt-2"
+        >
           <Ionicons name="add-circle-outline" size={24} color="#496c60" />
           <Text
             className="ml-2 font-semibold text-base"
@@ -115,6 +171,13 @@ export default function AddressScreen() {
           </Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Add Address Modal */}
+      <AddAddressModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onAdd={handleAddAddress}
+      />
     </View>
   );
 }

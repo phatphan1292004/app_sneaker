@@ -1,4 +1,4 @@
-import { Product, productService } from '@/services/product_service';
+import { Product, productService } from '@/services/productService';
 import { useEffect, useState } from 'react';
 
 interface UseProductDetailReturn {

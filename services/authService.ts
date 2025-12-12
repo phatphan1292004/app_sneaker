@@ -1,12 +1,12 @@
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-  User,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    updateProfile,
+    User,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
-import { userService } from "./user_service";
+import { userService } from "./userService";
 
 export interface RegisterData {
   name: string;

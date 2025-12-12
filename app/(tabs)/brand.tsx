@@ -1,13 +1,8 @@
 import ProductCard from "@/components/product/product_card";
-import React from "react";
-import {
-  Image,
-  ScrollView,
-  StatusBar,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useState } from "react";
+
+import FilterIcon from "@/components/icons/FilterIcon";
+import { Image, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 import { useBrands } from "@/hooks/useBrandFilters";
 import { useFilters } from "@/hooks/useFilters";
@@ -17,6 +12,15 @@ export default function BrandScreen() {
   const brands = useBrands();
   const filters = useFilters();
   const products = useProducts(filters);
+  const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  
+  // Temporary filters for modal
+  const [tempFilters, setTempFilters] = useState({
+    price: filters.selectedPrice,
+    sort: filters.selectedSort,
+    size: filters.selectedSize,
+    color: filters.selectedColor,
+  });
 
   const priceOptions = [
     { label: "ALL", id: "ALL" },
@@ -83,14 +87,44 @@ export default function BrandScreen() {
     );
   };
 
+  // Open modal and sync temp filters with current filters
+  const openFilterModal = () => {
+    setTempFilters({
+      price: filters.selectedPrice,
+      sort: filters.selectedSort,
+      size: filters.selectedSize,
+      color: filters.selectedColor,
+    });
+    setIsFilterModalVisible(true);
+  };
+
+  // Apply filters
+  const applyFilters = () => {
+    filters.setSelectedPrice(tempFilters.price);
+    filters.setSelectedSort(tempFilters.sort);
+    filters.setSelectedSize(tempFilters.size);
+    filters.setSelectedColor(tempFilters.color);
+    setIsFilterModalVisible(false);
+  };
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View
-        className="px-5 py-4 border-b border-gray-200"
-        style={{ paddingTop: StatusBar.currentHeight || 20 }}
-      >
-        <Text className="text-2xl font-bold text-gray-900">Brand</Text>
+      <View className="px-5 py-4 flex-row items-center justify-between">
+        <Image
+          source={{
+            uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+          }}
+          className="w-14 h-14 rounded-lg"
+        />
+        <TouchableOpacity
+          onPress={openFilterModal}
+          className="px-4 py-2 rounded-full border border-gray-300 flex-row items-center"
+          style={{ backgroundColor: "#f3f4f6" }}
+        >
+          <FilterIcon size={20} color="#496c60" style={{ marginRight: 6 }} />
+          <Text className="text-sm font-medium text-gray-700">Filters</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView className="flex-1">
@@ -139,45 +173,6 @@ export default function BrandScreen() {
           </ScrollView>
         </View>
 
-        {/* FILTERS */}
-        <View className="px-5 mb-4">
-          <Text className="text-base font-semibold text-gray-900 mb-2">
-            Price
-          </Text>
-          {renderFilterOptions(
-            priceOptions,
-            filters.selectedPrice,
-            filters.setSelectedPrice
-          )}
-
-          <Text className="text-base font-semibold text-gray-900 mb-2">
-            Sort
-          </Text>
-          {renderFilterOptions(
-            sortOptions,
-            filters.selectedSort,
-            filters.setSelectedSort
-          )}
-
-          <Text className="text-base font-semibold text-gray-900 mb-2">
-            Size
-          </Text>
-          {renderFilterOptions(
-            sizeOptions,
-            filters.selectedSize,
-            filters.setSelectedSize
-          )}
-
-          <Text className="text-base font-semibold text-gray-900 mb-2">
-            Color
-          </Text>
-          {renderFilterOptions(
-            colorOptions,
-            filters.selectedColor,
-            filters.setSelectedColor
-          )}
-        </View>
-
         {/* PRODUCT LIST */}
         <View className="px-5 pb-6">
           <View className="flex-row flex-wrap justify-between">
@@ -194,6 +189,78 @@ export default function BrandScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* FILTER MODAL */}
+      <Modal
+        visible={isFilterModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setIsFilterModalVisible(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-white rounded-t-3xl" style={{ maxHeight: '80%' }}>
+            {/* Modal Header */}
+            <View className="px-5 py-4 border-b border-gray-200 flex-row items-center justify-between">
+              <Text className="text-lg font-bold text-gray-900">Filters</Text>
+              <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
+                <Text className="text-base text-gray-500">✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Modal Content */}
+            <ScrollView className="px-5 py-4">
+              <Text className="text-base font-semibold text-gray-900 mb-2">
+                Price
+              </Text>
+              {renderFilterOptions(
+                priceOptions,
+                tempFilters.price,
+                (id) => setTempFilters({ ...tempFilters, price: id })
+              )}
+
+              <Text className="text-base font-semibold text-gray-900 mb-2">
+                Sort
+              </Text>
+              {renderFilterOptions(
+                sortOptions,
+                tempFilters.sort,
+                (id) => setTempFilters({ ...tempFilters, sort: id })
+              )}
+
+              <Text className="text-base font-semibold text-gray-900 mb-2">
+                Size
+              </Text>
+              {renderFilterOptions(
+                sizeOptions,
+                tempFilters.size,
+                (id) => setTempFilters({ ...tempFilters, size: id })
+              )}
+
+              <Text className="text-base font-semibold text-gray-900 mb-2">
+                Color
+              </Text>
+              {renderFilterOptions(
+                colorOptions,
+                tempFilters.color,
+                (id) => setTempFilters({ ...tempFilters, color: id })
+              )}
+            </ScrollView>
+
+            {/* Modal Footer */}
+            <View className="px-5 py-4 border-t border-gray-200">
+              <TouchableOpacity
+                onPress={applyFilters}
+                className="py-3 rounded-full items-center"
+                style={{ backgroundColor: "#496c60" }}
+              >
+                <Text className="text-white font-semibold text-base">
+                  Apply Filters
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

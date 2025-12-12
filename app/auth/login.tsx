@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   Text,
   TextInput,
@@ -97,18 +98,32 @@ export default function LoginScreen() {
               />
             </TouchableOpacity>
           </View>
+
+          {/* Forgot Password */}
+          <TouchableOpacity
+            onPress={() => router.push("/auth/forgot-password")}
+            className="mt-3 self-end"
+          >
+            <Text className="text-sm text-[#496c60] font-medium">
+              Forgot Password?
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Sign In Button */}
         <TouchableOpacity
-          className="rounded-xl py-4 mb-6"
+          className="rounded-xl py-4 mb-6 flex-row items-center justify-center"
           style={{ backgroundColor: "#496c60", opacity: loading ? 0.7 : 1 }}
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text className="text-white text-center font-semibold text-base">
-            {loading ? "Signing In..." : "Sign In"}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="text-white text-center font-semibold text-base">
+              Sign In
+            </Text>
+          )}
         </TouchableOpacity>
 
         {/* Divider */}

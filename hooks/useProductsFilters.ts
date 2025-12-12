@@ -1,4 +1,4 @@
-import { productService } from "@/services/product_service";
+import { productService } from "@/services/productService";
 import { useEffect, useState } from "react";
 
 export function useProducts(filters: any) {

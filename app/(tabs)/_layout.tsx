@@ -34,6 +34,7 @@ export default function TabLayout() {
         options={{
           title: "Thương hiệu",
           tabBarLabel: "Brand",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <BrandIcon width={size} height={size} stroke={color} />
           ),
