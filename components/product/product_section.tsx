@@ -1,5 +1,5 @@
 import ProductCard from "@/components/product/product_card";
-import { Product } from "@/services/product_service";
+import { Product } from "@/services/productService";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 

@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
 import {
-  Alert,
   Image,
   ScrollView,
   StatusBar,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
   const { user, loading } = useAuth();
@@ -25,9 +25,18 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await logoutUser();
-      router.replace("/auth/login");
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Logged out successfully!",
+      });
+      router.replace("/");
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.message,
+      });
     }
   };
 

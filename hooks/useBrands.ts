@@ -1,4 +1,4 @@
-import { Brand, brandService } from '@/services/brand_service';
+import { Brand, brandService } from '@/services/brandService';
 import { useEffect, useState } from 'react';
 
 interface FormattedBrand {

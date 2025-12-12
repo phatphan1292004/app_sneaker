@@ -1,4 +1,4 @@
-import { brandService } from "@/services/brand_service";
+import { brandService } from "@/services/brandService";
 import { useEffect, useState } from "react";
 export function useBrands() {
   const [brands, setBrands] = useState<any[]>([]);
