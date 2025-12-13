@@ -1,5 +1,7 @@
+import OrderDetailModal from "@/components/order/OrderDetailModal";
+import { ApiOrder, orderService } from "@/services/orderService";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -7,64 +9,56 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
-interface Order {
-  id: string;
-  orderDate: string;
-  status: string;
-  itemCount: number;
-  productName: string;
-  productDescription: string;
-  productImage: string;
-}
+
 
 export default function OrdersHistoryScreen() {
-  const orders: Order[] = [
-    {
-      id: "#10110433",
-      orderDate: "10 November 2026",
-      status: "Shipped",
-      itemCount: 1,
-      productName: "Nike Air Max 270",
-      productDescription:
-        "Stay comfortable and stylish with this casual Nike Hoodie.",
-      productImage:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200",
-    },
-    {
-      id: "#10115050",
-      orderDate: "07 November 2026",
-      status: "Shipped",
-      itemCount: 1,
-      productName: "Adidas Ultraboost 22",
-      productDescription:
-        "The ASUS ROG Strix G16 is built for gamers who demand power, speed, and stunning graphics.",
-      productImage:
-        "https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=200",
-    },
-    {
-      id: "#10110555",
-      orderDate: "08 November 2026",
-      status: "Delivered",
-      itemCount: 2,
-      productName: "Puma RS-X Running Shoes",
-      productDescription:
-        "Premium running shoes with excellent cushioning and support.",
-      productImage:
-        "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=200",
-    },
-  ];
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [search, setSearch] = useState("");
+  const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const userId = "DT8P5ibWKLOSXkPhcUdSrmkcHZf2";
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await orderService.getUserOrders(userId);
+        if (res.success) {
+          setOrders(res.data);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  const handleOrderDetail = async (orderId: string) => {
+    try {
+      const res = await orderService.getOrderById(orderId);
+      if (res.success) {
+        setSelectedOrder(res.data); 
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
       <View
-        className="px-5 py-4 flex-row items-center justify-between"
+        className="px-5 py-4"
         style={{ paddingTop: StatusBar.currentHeight || 20 }}
       >
-
+        <Text className="text-xl font-bold text-gray-900">
+          Orders History
+        </Text>
       </View>
 
       {/* Search Bar */}
@@ -72,6 +66,8 @@ export default function OrdersHistoryScreen() {
         <View className="flex-row items-center bg-gray-50 rounded-xl px-4 py-3">
           <Ionicons name="search-outline" size={20} color="#9CA3AF" />
           <TextInput
+            value={search}
+            onChangeText={setSearch}
             placeholder="Search Your Orders..."
             placeholderTextColor="#9CA3AF"
             className="flex-1 ml-2 text-gray-900"
@@ -80,75 +76,98 @@ export default function OrdersHistoryScreen() {
       </View>
 
       <ScrollView className="flex-1 px-5 py-4">
-        {orders.map((order) => (
-          <View key={order.id} className="mb-4 bg-white rounded-2xl border border-gray-200 p-4">
-            {/* Order Header */}
-            <View className="flex-row items-center justify-between mb-3">
-              <View>
-                <Text className="font-bold text-gray-900 text-base mb-1">
-                  {order.id}
-                </Text>
-                <Text className="text-gray-500 text-xs">
-                  Ordered on {order.orderDate}
+        {orders.map((order) => {
+          const firstItem = order.items[0];
+
+          return (
+            <View
+              key={order._id}
+              className="mb-4 bg-white rounded-2xl border border-gray-200 p-4"
+            >
+              {/* Order Header */}
+              <View className="flex-row items-center justify-between mb-3">
+                <View>
+                  <Text className="font-bold text-gray-900 text-base mb-1">
+                    #{order._id.slice(-6)}
+                  </Text>
+                  <Text className="text-gray-500 text-xs">
+                    Ordered on{" "}
+                    {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                  </Text>
+                </View>
+
+                <TouchableOpacity onPress={() => handleOrderDetail(order._id)}>
+                  <Text
+                    className="text-sm font-semibold"
+                    style={{ color: "#496c60" }}
+                  >
+                    Order Details
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Product Info */}
+              <View className="flex-row mb-4">
+                <View className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden mr-3 items-center justify-center">
+                  {firstItem.product_id.images ? (
+                    <Image
+                      source={{ uri: firstItem.product_id.images[0] }}
+                      className="w-full h-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Text className="text-gray-400 text-xs">No Image</Text>
+                  )}
+                </View>
+
+                <View className="flex-1">
+                  <Text className="font-semibold text-gray-900 mb-1">
+                    {firstItem.product_id.name}
+                  </Text>
+                  <Text className="text-gray-500 text-xs" numberOfLines={2}>
+                    {firstItem.product_id.description ?? "No description"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Status and Items */}
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="cube-outline"
+                    size={16}
+                    color="#6B7280"
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text className="text-gray-600 text-xs">
+                    {order.status.toUpperCase()}
+                  </Text>
+                </View>
+                <Text className="text-gray-600 text-xs">
+                  {order.items.length}x items
                 </Text>
               </View>
-              <TouchableOpacity>
-                <Text
-                  className="text-sm font-semibold"
-                  style={{ color: "#496c60" }}
-                >
-                  Order Details
+
+              {/* Track Order Button */}
+              <TouchableOpacity
+                className="rounded-xl py-3 items-center"
+                style={{ backgroundColor: "#496c60" }}
+              >
+                <Text className="text-white font-semibold text-sm">
+                  My order track
                 </Text>
               </TouchableOpacity>
             </View>
-
-            {/* Product Info */}
-            <View className="flex-row mb-4">
-              <View className="w-20 h-20 bg-gray-100 rounded-xl overflow-hidden mr-3">
-                <Image
-                  source={{ uri: order.productImage }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </View>
-              <View className="flex-1">
-                <Text className="font-semibold text-gray-900 mb-1">
-                  {order.productName}
-                </Text>
-                <Text className="text-gray-500 text-xs" numberOfLines={2}>
-                  {order.productDescription}
-                </Text>
-              </View>
-            </View>
-
-            {/* Status and Items */}
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-row items-center">
-                <Ionicons
-                  name="cube-outline"
-                  size={16}
-                  color="#6B7280"
-                  style={{ marginRight: 4 }}
-                />
-                <Text className="text-gray-600 text-xs">{order.status}</Text>
-              </View>
-              <Text className="text-gray-600 text-xs">
-                {order.itemCount}x items
-              </Text>
-            </View>
-
-            {/* Track Order Button */}
-            <TouchableOpacity
-              className="rounded-xl py-3 items-center"
-              style={{ backgroundColor: "#496c60" }}
-            >
-              <Text className="text-white font-semibold text-sm">
-                My order track
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
+
+      {/* Modal chi tiết order */}
+      <OrderDetailModal
+        visible={showModal}
+        order={selectedOrder}
+        onClose={() => setShowModal(false)}
+      />
     </View>
   );
 }

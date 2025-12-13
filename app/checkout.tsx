@@ -86,9 +86,8 @@ export default function CheckoutScreen() {
     fetchAddresses();
   }, [user?.uid]);
 
-  console.log(addresses);
-
   const handlePlaceOrder = async () => {
+    console.log("user:", user);
     if (!user) {
       Toast.show({
         type: "error",
@@ -135,7 +134,6 @@ export default function CheckoutScreen() {
           ward: selectedAddress.ward,
           district: selectedAddress.district,
           province: selectedAddress.province,
-          city: selectedAddress.province, // hoặc sửa lại nếu có city riêng
           country: "Vietnam",
         },
         payment_method: selectedPayment,
