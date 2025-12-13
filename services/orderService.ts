@@ -1,10 +1,51 @@
 import api from './api';
 
+// OrderItem for creating order (sending to API)
 export interface OrderItem {
   product_id: string;
   variant_id: string;
   quantity: number;
   price: number;
+}
+
+// OrderItem for API response (nested object)
+export interface ApiOrderItem {
+  product_id: {
+    _id: string;
+    name: string;
+    description: string;
+    images: string[];
+    id: string;
+  };
+  variant_id: {
+    _id: string;
+    color: string;
+    size: string;
+    price: number;
+  };
+  quantity: number;
+  price: number;
+  _id: string;
+}
+
+export interface ApiOrder {
+  _id: string;
+  user_id: string;
+  items: ApiOrderItem[];
+  shipping_address: {
+    street: string;
+    ward: string;
+    district: string;
+    province: string;
+    country: string;
+    _id: string;
+  };
+  payment_method: string;
+  total_amount: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
 }
 
 export interface CreateOrderData {
@@ -20,26 +61,30 @@ export interface CreateOrderData {
   total_amount: number;
 }
 
+// Order for API response (should match ApiOrder)
 export interface Order {
   _id: string;
   user_id: string;
-  items: OrderItem[];
+  items: ApiOrderItem[];
   shipping_address: {
     street: string;
-    province: string;
-    district: string;
     ward: string;
+    district: string;
+    province: string;
+    country: string;
+    _id: string;
   };
   payment_method: string;
   total_amount: number;
   status: string;
   createdAt: string;
   updatedAt: string;
+  __v?: number;
 }
 
 interface OrderResponse {
   success: boolean;
-  data: Order;
+  data: ApiOrder;
   message?: string;
 }
 
@@ -52,7 +97,7 @@ export const orderService = {
   },
 
   // Lấy danh sách orders của user
-  getUserOrders: async (userId: string): Promise<{ success: boolean; data: Order[] }> => {
+  getUserOrders: async (userId: string): Promise<{ success: boolean; data: ApiOrder[] }> => {
     const response = await api.get(`/order/user/${userId}`);
     return response.data;
   },
