@@ -1,6 +1,7 @@
 import OrderDetailModal from "@/components/order/OrderDetailModal";
 import { ApiOrder, orderService } from "@/services/orderService";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -40,6 +41,7 @@ export default function OrdersHistoryScreen() {
   const handleOrderDetail = async (orderId: string) => {
     try {
       const res = await orderService.getOrderById(orderId);
+      console.log("Order detail response:", res);
       if (res.success) {
         setSelectedOrder(res.data); 
         setShowModal(true);
@@ -53,9 +55,12 @@ export default function OrdersHistoryScreen() {
     <View className="flex-1 bg-white">
       {/* Header */}
       <View
-        className="px-5 py-4"
+        className="px-5 py-4 flex-row items-center"
         style={{ paddingTop: StatusBar.currentHeight || 20 }}
       >
+        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+          <Ionicons name="arrow-back" size={24} color="#496c60" />
+        </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900">
           Orders History
         </Text>

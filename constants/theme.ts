@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 
 // Bảng màu chi tiết, chia nhóm, dễ mở rộng
 export const PALETTE = {
-  primary: '#0a7ea4',
+  primary: '#496c60',
   secondary: '#2ecc71',
   accent: '#e67e22',
   error: '#e74c3c',

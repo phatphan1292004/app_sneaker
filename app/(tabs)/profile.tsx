@@ -51,7 +51,7 @@ export default function ProfileScreen() {
   if (!user) return null;
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-gray-100">
       {/* Header */}
       <View
         className="px-5 py-4 border-b border-gray-200 flex-row items-center"
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
 
         {/* Edit Profile */}
         <TouchableOpacity
-          className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/edit" as any)}
         >
           <Ionicons
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
 
         {/* Address */}
         <TouchableOpacity
-          className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/address" as any)}
         >
           <Ionicons
@@ -119,7 +119,7 @@ export default function ProfileScreen() {
 
         {/* Notifications */}
         <TouchableOpacity
-          className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/notifications" as any)}
         >
           <Ionicons
@@ -133,7 +133,7 @@ export default function ProfileScreen() {
 
         {/* Order History */}
         <TouchableOpacity
-          className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/orders_history" as any)}
         >
           <Ionicons
@@ -147,7 +147,7 @@ export default function ProfileScreen() {
 
         {/* Contact Support */}
         <TouchableOpacity
-          className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/support" as any)}
         >
           <Ionicons
@@ -161,7 +161,7 @@ export default function ProfileScreen() {
 
         {/* Logout */}
         <TouchableOpacity
-          className="bg-gray-100 p-4 rounded-lg mb-3 flex-row items-center mx-5"
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={handleLogout}
         >
           <Ionicons
