@@ -203,9 +203,9 @@ export default function CheckoutScreen() {
             </Text>
             <TouchableOpacity
               onPress={() => router.push("/profile/address")}
-              className="px-3 py-1 bg-[#496c60] rounded-xl"
+              className="h-10 w-10 bg-[#496c60] rounded-xl flex items-center justify-center"
             >
-              <Text className="text-white font-semibold text-base">+</Text>
+              <Text className="text-white font-semibold text-xl">+</Text>
             </TouchableOpacity>
           </View>
           {addresses.length === 0 ? (

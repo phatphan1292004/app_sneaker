@@ -1,6 +1,9 @@
+import ProductReview from "@/components/product/ProductReview";
 import SimpleTabBar from "@/components/tabbar/SimpleTabBar";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useProductDetail } from "@/hooks/useProductDetail";
+import { reviewService, Review as ReviewType } from "@/services/reviewService";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
@@ -18,10 +21,40 @@ import Toast from "react-native-toast-message";
 const { width } = Dimensions.get("window");
 
 export default function ProductDetailScreen() {
+  // State cho bình luận
+  const [reviews, setReviews] = useState<ReviewType[]>([]);
+  const user = useAuth();
+  const [loadingReviews, setLoadingReviews] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const params = useLocalSearchParams();
   const productId = params.id as string;
 
   const { product, loading, error } = useProductDetail(productId);
+const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Hàm gửi bình luận
+  const handleSubmitReview = async (review: Omit<ReviewType, "_id" | "createdAt">) => {
+    setSubmittingReview(true);
+    try {
+      const newReview = await reviewService.postReview(review);
+      setReviews((prev) => [newReview, ...prev]);
+      Toast.show({ type: "success", text1: "Đã gửi bình luận!", position: "bottom" });
+    } catch (e) {
+      Toast.show({ type: "error", text1: "Gửi bình luận thất bại!", position: "bottom" });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+    // Lấy danh sách bình luận khi có productId
+    useEffect(() => {
+      if (!productId) return;
+      setLoadingReviews(true);
+      reviewService.getReviews(productId)
+        .then(setReviews)
+        .catch(() => setReviewError("Không thể tải bình luận"))
+        .finally(() => setLoadingReviews(false));
+    }, [productId]);
   const { addItem } = useCart();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -370,62 +403,11 @@ export default function ProductDetailScreen() {
               {product.description}
             </Text>
           ) : (
-            <View className="mb-8">
-              <View className="flex-row items-center mb-4">
-                <View className="flex-row items-center mr-4">
-                  <Ionicons name="star" size={20} color="#FFC107" />
-                  <Text className="text-lg font-bold text-gray-900 ml-1">
-                    4.5
-                  </Text>
-                  <Text className="text-sm text-gray-500 ml-1">
-                    (120 reviews)
-                  </Text>
-                </View>
-              </View>
-
-              {/* Sample Review */}
-              <View className="bg-gray-50 rounded-xl p-4 mb-3">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-semibold text-gray-900">John Doe</Text>
-                  <View className="flex-row">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Ionicons
-                        key={star}
-                        name="star"
-                        size={14}
-                        color="#FFC107"
-                      />
-                    ))}
-                  </View>
-                </View>
-                <Text className="text-sm text-gray-600">
-                  Great shoes! Very comfortable and stylish. Highly recommend
-                  for running.
-                </Text>
-              </View>
-
-              <View className="bg-gray-50 rounded-xl p-4">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="font-semibold text-gray-900">
-                    Jane Smith
-                  </Text>
-                  <View className="flex-row">
-                    {[1, 2, 3, 4].map((star) => (
-                      <Ionicons
-                        key={star}
-                        name="star"
-                        size={14}
-                        color="#FFC107"
-                      />
-                    ))}
-                    <Ionicons name="star-outline" size={14} color="#FFC107" />
-                  </View>
-                </View>
-                <Text className="text-sm text-gray-600">
-                  Good quality but a bit pricey. Worth it for the comfort level.
-                </Text>
-              </View>
-            </View>
+            <ProductReview
+              reviews={reviews}
+              onSubmitReview={handleSubmitReview}
+              submitting={submittingReview}
+            />
           )}
         </View>
       </ScrollView>
