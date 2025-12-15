@@ -1,6 +1,5 @@
 import ProductReview from "@/components/product/ProductReview";
 import SimpleTabBar from "@/components/tabbar/SimpleTabBar";
-import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useProductDetail } from "@/hooks/useProductDetail";
 import { reviewService, Review as ReviewType } from "@/services/reviewService";
@@ -23,38 +22,79 @@ const { width } = Dimensions.get("window");
 export default function ProductDetailScreen() {
   // State cho bình luận
   const [reviews, setReviews] = useState<ReviewType[]>([]);
-  const user = useAuth();
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const params = useLocalSearchParams();
   const productId = params.id as string;
 
   const { product, loading, error } = useProductDetail(productId);
-const [submittingReview, setSubmittingReview] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [submittingReplyId, setSubmittingReplyId] = useState<
+    string | undefined
+  >(undefined);
+
+  // Hàm gửi trả lời bình luận
+  const handleSubmitReply = async (
+    reply: Omit<ReviewType, "_id" | "createdAt">
+  ) => {
+    if (!reply.parent_id) return;
+    setSubmittingReplyId(reply.parent_id);
+    try {
+      const newReply = await reviewService.postReview(reply);
+      setReviews((prev) => [newReply, ...prev]);
+      Toast.show({
+        type: "success",
+        text1: "Đã gửi trả lời!",
+        position: "bottom",
+      });
+    } catch (e) {
+      console.error(e);
+      Toast.show({
+        type: "error",
+        text1: "Gửi trả lời thất bại!",
+        position: "bottom",
+      });
+    } finally {
+      setSubmittingReplyId(undefined);
+    }
+  };
 
   // Hàm gửi bình luận
-  const handleSubmitReview = async (review: Omit<ReviewType, "_id" | "createdAt">) => {
+  const handleSubmitReview = async (
+    review: Omit<ReviewType, "_id" | "createdAt">
+  ) => {
     setSubmittingReview(true);
+
     try {
       const newReview = await reviewService.postReview(review);
       setReviews((prev) => [newReview, ...prev]);
-      Toast.show({ type: "success", text1: "Đã gửi bình luận!", position: "bottom" });
+      Toast.show({
+        type: "success",
+        text1: "Đã gửi bình luận!",
+        position: "bottom",
+      });
     } catch (e) {
-      Toast.show({ type: "error", text1: "Gửi bình luận thất bại!", position: "bottom" });
+      Toast.show({
+        type: "error",
+        text1: "Gửi bình luận thất bại!",
+        position: "bottom",
+      });
     } finally {
       setSubmittingReview(false);
     }
   };
 
-    // Lấy danh sách bình luận khi có productId
-    useEffect(() => {
-      if (!productId) return;
-      setLoadingReviews(true);
-      reviewService.getReviews(productId)
-        .then(setReviews)
-        .catch(() => setReviewError("Không thể tải bình luận"))
-        .finally(() => setLoadingReviews(false));
-    }, [productId]);
+  // Lấy danh sách bình luận khi có productId
+  useEffect(() => {
+    if (!productId) return;
+    setLoadingReviews(true);
+    reviewService
+      .getReviews(productId)
+      .then(setReviews)
+      .catch(() => setReviewError("Không thể tải bình luận"))
+      .finally(() => setLoadingReviews(false));
+  }, [productId]);
+
   const { addItem } = useCart();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -404,9 +444,12 @@ const [submittingReview, setSubmittingReview] = useState(false);
             </Text>
           ) : (
             <ProductReview
+              productId={productId}
               reviews={reviews}
               onSubmitReview={handleSubmitReview}
               submitting={submittingReview}
+              onSubmitReply={handleSubmitReply}
+              submittingReplyId={submittingReplyId}
             />
           )}
         </View>
