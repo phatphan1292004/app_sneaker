@@ -19,25 +19,35 @@ export default function AddressCard({
   province,
   isDefault,
 }: AddressCardProps) {
+  let iconName: keyof typeof Ionicons.glyphMap = "home-outline";
+  if (type.toLowerCase() === "office") {
+    iconName = "business-outline";
+  } else if (type.toLowerCase() === "home") {
+    iconName = "home-outline";
+  } else {
+    iconName = "location-outline";
+  }
   return (
     <View className="mb-4 bg-gray-50 rounded-2xl p-4 relative">
       {/* Address Type Icon and Map Icon */}
       <View className="flex-row items-start justify-between mb-3">
         <View className="flex-row items-center">
           <View className="w-10 h-10 bg-white rounded-full items-center justify-center mr-1">
-            <Ionicons name="home-outline" size={20} color="#496c60" />
+            <Ionicons name={iconName} size={20} color="#496c60" />
           </View>
           <View className="flex-1 flex-row items-center">
             <Text className="font-bold text-gray-900 text-base">{type}</Text>
             {isDefault && (
               <View className="ml-2 px-3 py-1 bg-green-100 rounded-lg">
-                <Text className="text-green-700 text-xs font-semibold">Mặc định</Text>
+                <Text className="text-green-700 text-xs font-semibold">
+                  Mặc định
+                </Text>
               </View>
             )}
           </View>
         </View>
-        <TouchableOpacity className="w-10 h-10 bg-white rounded-full items-center justify-center">
-          <Ionicons name="location-outline" size={20} color="#496c60" />
+        <TouchableOpacity className=" bg-white rounded-full items-center justify-center">
+          <Ionicons name="close" size={25} className="text-red-500" />
         </TouchableOpacity>
       </View>
 

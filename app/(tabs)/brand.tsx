@@ -108,7 +108,7 @@ export default function BrandScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-gray-100">
       {/* Header */}
       <View className="px-5 py-4 flex-row items-center justify-between">
         <Image
@@ -146,7 +146,7 @@ export default function BrandScreen() {
                     backgroundColor:
                       filters.selectedBrand === brand._id
                         ? "#d1e7dd"
-                        : "#f3f4f6",
+                        : "#fff",
                     borderWidth: filters.selectedBrand === brand._id ? 2 : 0,
                     borderColor: "#496c60",
                   }}

@@ -61,7 +61,7 @@ export default function HomeScreen() {
 
         {/* Search Bar */}
         <View className="mx-5 mb-4">
-          <View className="flex-row items-center bg-white rounded-xl px-4 py-2">
+          <View className="flex-row items-center bg-white rounded-xl px-4 py-3">
             <Ionicons name="search" size={20} color="#9ca3af" />
             <TextInput
               placeholder="Search Collections..."
