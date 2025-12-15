@@ -19,8 +19,13 @@ export const reviewService = {
   },
 
   // Đăng bình luận mới
-  postReview: async (review: Omit<Review, "_id" | "createdAt">): Promise<Review> => {
-    const res = await api.post(`/reviews`, review);
+  postReview: async (
+    review: Omit<Review, "_id" | "createdAt">
+  ): Promise<Review> => {
+    // Nếu là reply thì loại bỏ rating
+    const { rating, ...rest } = review;
+    const data = review.parent_id ? rest : review;
+    const res = await api.post(`/reviews`, data);
     return res.data;
   },
 };
