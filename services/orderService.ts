@@ -1,4 +1,4 @@
-import api from './api';
+import api from "./api";
 
 // OrderItem for creating order (sending to API)
 export interface OrderItem {
@@ -92,18 +92,36 @@ interface OrderResponse {
 export const orderService = {
   // Tạo order mới
   createOrder: async (orderData: CreateOrderData): Promise<OrderResponse> => {
-    const response = await api.post('/order', orderData);
+    const response = await api.post("/order", orderData);
     return response.data;
   },
 
   // Lấy danh sách orders của user
-  getUserOrders: async (userId: string): Promise<{ success: boolean; data: ApiOrder[] }> => {
+  getUserOrders: async (
+    userId: string
+  ): Promise<{ success: boolean; data: ApiOrder[] }> => {
     const response = await api.get(`/order/user/${userId}`);
     return response.data;
   },
 
   // Lấy chi tiết order
   getOrderById: async (orderId: string): Promise<OrderResponse> => {
+    const response = await api.get(`/order/${orderId}`);
+    return response.data;
+  },
+
+  // Tạo URL thanh toán VNPay
+  createVNPayPayment: async (
+    orderId: string
+  ): Promise<{ success: boolean; url?: string; message?: string }> => {
+    const response = await api.post("/api/vnpay", { orderId });
+    return response.data;
+  },
+
+  // Kiểm tra trạng thái order (nếu cần)
+  getOrderStatus: async (
+    orderId: string
+  ): Promise<{ success: boolean; status?: string }> => {
     const response = await api.get(`/order/${orderId}`);
     return response.data;
   },
