@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   ScrollView,
   StatusBar,
   Text,
@@ -14,6 +15,8 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { WebView } from "react-native-webview";
+import api from "../services/api";
 
 export default function CheckoutScreen() {
   const { items, getTotalItems, getTotalPrice, clearCart } = useCart();
@@ -22,6 +25,7 @@ export default function CheckoutScreen() {
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [vnpayUrl, setVnpayUrl] = useState<string | null>(null);
 
   const subtotal = getTotalPrice();
   const shipping = 0;
@@ -54,6 +58,7 @@ export default function CheckoutScreen() {
     },
   ];
 
+  // Load addresses
   useEffect(() => {
     const fetchAddresses = async () => {
       if (!user?.uid) return;
@@ -71,14 +76,13 @@ export default function CheckoutScreen() {
             isDefault: addr.isDefault || false,
           }));
           setAddresses(mapped);
-          // Chọn mặc định là địa chỉ đầu tiên hoặc địa chỉ mặc định
           const defaultAddr = mapped.find((a) => a.isDefault) || mapped[0];
           setSelectedAddress(defaultAddr || null);
         } else {
           setAddresses([]);
           setSelectedAddress(null);
         }
-      } catch (e) {
+      } catch {
         setAddresses([]);
         setSelectedAddress(null);
       }
@@ -86,18 +90,13 @@ export default function CheckoutScreen() {
     fetchAddresses();
   }, [user?.uid]);
 
+  // Handle order placement
   const handlePlaceOrder = async () => {
-    console.log("user:", user);
     if (!user) {
-      Toast.show({
-        type: "error",
-        text1: "Error",
-        text2: "Please login to place order",
-      });
+      Toast.show({ type: "error", text1: "Error", text2: "Please login" });
       router.push("/auth/login");
       return;
     }
-
     if (items.length === 0) {
       Toast.show({
         type: "error",
@@ -106,21 +105,17 @@ export default function CheckoutScreen() {
       });
       return;
     }
+    if (!selectedAddress) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Please select a delivery address.",
+      });
+      return;
+    }
 
     try {
       setLoading(true);
-
-
-      if (!selectedAddress) {
-        Toast.show({
-          type: "error",
-          text1: "Error",
-          text2: "Please select a delivery address.",
-        });
-        setLoading(false);
-        return;
-      }
-
       const orderData = {
         user_id: user.uid,
         items: items.map((item) => ({
@@ -140,36 +135,91 @@ export default function CheckoutScreen() {
         total_amount: total,
       };
 
-      const response = await orderService.createOrder(orderData);
+      const createOrderRes = await orderService.createOrder(orderData);
+      if (!createOrderRes.success) {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: createOrderRes.message,
+        });
+        return;
+      }
 
-      if (response.success) {
-        console.log("✅ Order created:", response.data);
+      const orderId = createOrderRes.data._id;
+
+      if (selectedPayment === "vnpay") {
+        const vnpayRes = await orderService.createVNPayPayment(orderId);
+        if (vnpayRes.success && vnpayRes.url) {
+          setVnpayUrl(vnpayRes.url);
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: vnpayRes.message || "Cannot open VNPay",
+          });
+        }
+      } else {
         clearCart();
-
-        // SUCCESS TOAST
         Toast.show({
           type: "success",
           text1: "Success",
           text2: "Order placed successfully!",
         });
-
-        // Điều hướng sau 700ms cho toast kịp hiển thị
-        setTimeout(() => {
-          router.push("/(tabs)");
-        }, 700);
+        setTimeout(() => router.push("/(tabs)"), 700);
       }
     } catch (error: any) {
-      console.error("❌ Error creating order:", error);
       Toast.show({
         type: "error",
         text1: "Error",
-        text2:
-          error.response?.data?.message ||
-          "Failed to place order. Please try again.",
-        position: "bottom",
+        text2: error.response?.data?.message || "Failed to place order",
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle VNPay WebView navigation
+  const handleWebViewNavigation = async (navState: any) => {
+    const url = navState.url;
+
+    // Kiểm tra xem URL hiện tại có chứa chuỗi return do VNPay gọi về không
+    if (url.includes("vnpay-return")) {
+      try {
+        // 1. Phân tích URL để lấy các tham số query VNPay gửi về
+        const parsedUrl = new URL(url);
+        const params = Object.fromEntries(parsedUrl.searchParams.entries());
+
+        // 2. Gọi API kiểm tra chữ ký thông qua instance 'api' của bạn
+        // Thay vì dùng fetch() thủ công, hãy dùng axios/api instance để đảm bảo header/base_url đúng
+        const response = await api.get("/api/vnpay-return", { params });
+        const data = response.data;
+
+        if (data.success && data.status === "paid") {
+          Toast.show({
+            type: "success",
+            text1: "Thành công",
+            text2: "Thanh toán đơn hàng hoàn tất!",
+          });
+          clearCart();
+          setVnpayUrl(null);
+          router.push("/(tabs)");
+        } else {
+          Toast.show({
+            type: "error",
+            text1: "Thanh toán thất bại",
+            text2: data.message || "Giao dịch không thành công",
+          });
+          setVnpayUrl(null);
+        }
+      } catch (error) {
+        console.error("Verify error:", error);
+        Toast.show({
+          type: "error",
+          text1: "Lỗi hệ thống",
+          text2: "Không thể xác thực giao dịch",
+        });
+        setVnpayUrl(null);
+      }
     }
   };
 
@@ -182,7 +232,7 @@ export default function CheckoutScreen() {
           paddingBottom: 100,
         }}
       >
-        {/* Header with back button */}
+        {/* Header */}
         <View className="flex-row items-center mb-6 mt-2">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -209,27 +259,34 @@ export default function CheckoutScreen() {
             </TouchableOpacity>
           </View>
           {addresses.length === 0 ? (
-            <Text className="text-gray-500">No address found. Please add an address.</Text>
+            <Text className="text-gray-500">
+              No address found. Please add an address.
+            </Text>
           ) : (
             <View style={{ maxHeight: 220 }}>
               <ScrollView>
-                {addresses.map((addr, idx) => (
+                {addresses.map((addr) => (
                   <TouchableOpacity
                     key={addr.id}
-                    className={`bg-gray-50 rounded-2xl p-4 mb-2 ${selectedAddress && selectedAddress.id === addr.id ? 'border-2 border-[#496c60]' : ''}`}
+                    className={`bg-gray-50 rounded-2xl p-4 mb-2 ${selectedAddress && selectedAddress.id === addr.id ? "border-2 border-[#496c60]" : ""}`}
                     onPress={() => setSelectedAddress(addr)}
                   >
                     <View className="flex-row items-start justify-between">
                       <View className="flex-1">
                         <Text className="font-semibold text-gray-900 mb-1">
-                          {addr.type} {addr.isDefault ? '(Mặc định)' : ''}
+                          {addr.type} {addr.isDefault ? "(Mặc định)" : ""}
                         </Text>
                         <Text className="text-gray-600 text-sm">
-                          {addr.street}, {addr.ward}, {addr.district}, {addr.province}
+                          {addr.street}, {addr.ward}, {addr.district},{" "}
+                          {addr.province}
                         </Text>
                       </View>
                       {selectedAddress && selectedAddress.id === addr.id && (
-                        <Ionicons name="checkmark-circle" size={20} color="#496c60" />
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={20}
+                          color="#496c60"
+                        />
                       )}
                     </View>
                   </TouchableOpacity>
@@ -312,15 +369,10 @@ export default function CheckoutScreen() {
         </View>
       </ScrollView>
 
-      {/* Place Order Button - Fixed at bottom */}
+      {/* Place Order Button */}
       <View
         className="px-5 py-4 border-t border-gray-200 bg-white"
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-        }}
+        style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
       >
         <TouchableOpacity
           onPress={handlePlaceOrder}
@@ -338,6 +390,60 @@ export default function CheckoutScreen() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* VNPay WebView Modal */}
+      {vnpayUrl && (
+        <Modal visible={true} animationType="slide">
+          <View style={{ flex: 1 }}>
+            {/* Header của Modal */}
+            <View
+              style={{
+                height: 60,
+                flexDirection: "row",
+                alignItems: "center",
+                paddingHorizontal: 10,
+                backgroundColor: "#496c60",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => setVnpayUrl(null)}
+                style={{ padding: 10 }}
+              >
+                <Ionicons name="close" size={28} color="#fff" />
+              </TouchableOpacity>
+              <Text style={{ color: "#fff", fontSize: 18, marginLeft: 10 }}>
+                VNPay Payment
+              </Text>
+            </View>
+
+            {/* ĐÂY LÀ CHỖ THAY THẾ/THÊM VÀO */}
+            <WebView
+              source={{ uri: vnpayUrl }}
+              onNavigationStateChange={handleWebViewNavigation}
+              // Thêm thuộc tính này để chặn trang 404 xuất hiện
+              onShouldStartLoadWithRequest={(request) => {
+                // Nếu URL chứa 'vnpay-return', ta chặn không cho load tiếp
+                if (request.url.includes("vnpay-return")) {
+                  handleWebViewNavigation(request); // Chạy logic xử lý kết quả
+                  return false; // Trả về false để WebView dừng lại, không hiện trang 404
+                }
+                return true;
+              }}
+              // Thêm các thuộc tính này để WebView chạy mượt hơn
+              javaScriptEnabled={true}
+              domStorageEnabled={true}
+              startInLoadingState={true}
+              renderLoading={() => (
+                <ActivityIndicator
+                  color="#496c60"
+                  size="large"
+                  style={{ position: "absolute", top: "50%", left: "45%" }}
+                />
+              )}
+            />
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
