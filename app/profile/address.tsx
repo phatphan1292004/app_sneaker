@@ -1,11 +1,12 @@
 import AddAddressModal from "@/components/address/AddAddressModal";
 import AddressCard from "@/components/address/AddressCard";
 import { useAuth } from "@/contexts/AuthContext";
-import { addressService } from "@/services/addressService";
+import { Address, addressService } from "@/services/addressService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   ScrollView,
   StatusBar,
   Text,
@@ -14,22 +15,12 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-interface Address {
-  user_id: string;
-  type: string;
-  street: string;
-  province: string;
-  district: string;
-  ward: string;
-  isDefault: boolean;
-}
-
 export default function AddressScreen() {
   const { user } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // Lấy danh sách địa chỉ khi user thay đổi hoặc khi mount
+  // 🔹 Lấy danh sách địa chỉ
   useEffect(() => {
     const fetchAddresses = async () => {
       if (!user?.uid) return;
@@ -37,14 +28,8 @@ export default function AddressScreen() {
         const response = await addressService.getAddressesByUserId(user.uid);
         if (response.success && response.data) {
           setAddresses(
-            response.data.map((addr: any) => ({
-              id: addr._id || addr.id,
-              user_id: addr.user_id,
-              type: addr.type,
-              street: addr.street,
-              province: addr.province,
-              district: addr.district,
-              ward: addr.ward,
+            response.data.map((addr: Address) => ({
+              ...addr,
               isDefault: addr.isDefault || false,
             }))
           );
@@ -58,6 +43,7 @@ export default function AddressScreen() {
     fetchAddresses();
   }, [user?.uid]);
 
+  // 🔹 Thêm địa chỉ mới
   const handleAddAddress = async (newAddress: {
     type: string;
     street: string;
@@ -65,8 +51,10 @@ export default function AddressScreen() {
     district: string;
     ward: string;
   }) => {
+    if (!user?.uid) return;
+
     const address: Address = {
-      user_id: user?.uid || "",
+      user_id: user.uid,
       type: newAddress.type,
       street: newAddress.street,
       province: newAddress.province,
@@ -84,23 +72,14 @@ export default function AddressScreen() {
           text1: "Success",
           text2: "Address added successfully!",
         });
-        // Sau khi thêm thành công, reload lại danh sách địa chỉ
-        if (user?.uid) {
-          const res = await addressService.getAddressesByUserId(user.uid);
-          if (res.success && res.data) {
-            setAddresses(
-              res.data.map((addr: any) => ({
-                id: addr._id || addr.id,
-                user_id: addr.user_id,
-                type: addr.type,
-                street: addr.street,
-                province: addr.province,
-                district: addr.district,
-                ward: addr.ward,
-                isDefault: addr.isDefault || false,
-              }))
-            );
-          }
+        const res = await addressService.getAddressesByUserId(user.uid);
+        if (res.success && res.data) {
+          setAddresses(
+            res.data.map((addr: Address) => ({
+              ...addr,
+              isDefault: addr.isDefault || false,
+            }))
+          );
         }
       } else {
         Toast.show({
@@ -114,6 +93,85 @@ export default function AddressScreen() {
         type: "error",
         text1: "Error",
         text2: error.message || "Failed to add address",
+      });
+    }
+  };
+
+  // 🔹 Xóa địa chỉ
+  const handleDeleteAddress = (addressId: string) => {
+    Alert.alert(
+      "Xóa địa chỉ",
+      "Bạn có chắc muốn xóa địa chỉ này?",
+      [
+        { text: "Hủy", style: "cancel" },
+        {
+          text: "Xóa",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await addressService.deleteAddress(addressId);
+              if (response.success) {
+                Toast.show({
+                  type: "success",
+                  text1: "Deleted",
+                  text2: "Address has been deleted",
+                });
+                setAddresses((prev) =>
+                  prev.filter((addr) => addr._id !== addressId)
+                );
+              } else {
+                Toast.show({
+                  type: "error",
+                  text1: "Error",
+                  text2: response.message || "Failed to delete address",
+                });
+              }
+            } catch (error: any) {
+              Toast.show({
+                type: "error",
+                text1: "Error",
+                text2: error.message || "Failed to delete address",
+              });
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  // 🔹 Đặt mặc định
+  const handleSetDefault = async (addressId: string) => {
+    if (!user?.uid) return;
+    try {
+      const response = await addressService.setDefaultAddress(
+        user.uid,
+        addressId
+      );
+      if (response.success && response.data) {
+        Toast.show({
+          type: "success",
+          text1: "Updated",
+          text2: "Default address updated!",
+        });
+        setAddresses((prev) =>
+          prev.map((addr: Address) => ({
+            ...addr,
+            isDefault: addr._id === addressId,
+          }))
+        );
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2: response.message || "Failed to set default",
+        });
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.message || "Failed to set default",
       });
     }
   };
@@ -135,25 +193,21 @@ export default function AddressScreen() {
         <Text className="text-xl font-bold text-gray-900 flex-1 text-center">
           Shipping Address
         </Text>
-
-        <TouchableOpacity>
-          <Text className="text-sm font-semibold" style={{ color: "#496c60" }}>
-            Edit
-          </Text>
-        </TouchableOpacity>
       </View>
 
+      {/* Content */}
       <ScrollView className="flex-1 px-5 py-4">
-        {/* Address Cards */}
-        {addresses.map((address) => (
+        {addresses.map((address: Address) => (
           <AddressCard
-            key={address.user_id}
+            key={address._id}
             type={address.type}
             street={address.street}
             ward={address.ward}
             district={address.district}
             province={address.province}
             isDefault={address.isDefault}
+            onDelete={() => handleDeleteAddress(address._id!)}
+            onSetDefault={() => handleSetDefault(address._id!)} // ✅ thêm prop
           />
         ))}
 
