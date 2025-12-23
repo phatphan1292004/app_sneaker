@@ -1,4 +1,5 @@
 import OrderDetailModal from "@/components/order/OrderDetailModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { ApiOrder, orderService } from "@/services/orderService";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -10,10 +11,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-
-
 
 export default function OrdersHistoryScreen() {
   const [orders, setOrders] = useState<ApiOrder[]>([]);
@@ -21,7 +20,8 @@ export default function OrdersHistoryScreen() {
   const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const userId = "DT8P5ibWKLOSXkPhcUdSrmkcHZf2";
+  const { user } = useAuth();
+  const userId = user?.uid || "";
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -43,7 +43,7 @@ export default function OrdersHistoryScreen() {
       const res = await orderService.getOrderById(orderId);
       console.log("Order detail response:", res);
       if (res.success) {
-        setSelectedOrder(res.data); 
+        setSelectedOrder(res.data);
         setShowModal(true);
       }
     } catch (error) {
@@ -61,9 +61,7 @@ export default function OrdersHistoryScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <Ionicons name="arrow-back" size={24} color="#496c60" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">
-          Orders History
-        </Text>
+        <Text className="text-xl font-bold text-gray-900">Orders History</Text>
       </View>
 
       {/* Search Bar */}
