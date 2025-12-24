@@ -8,16 +8,13 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Dimensions,
   Image,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
-
-const { width } = Dimensions.get("window");
 
 export default function ProductDetailScreen() {
   // State cho bình luận
@@ -183,6 +180,11 @@ export default function ProductDetailScreen() {
       return;
     }
 
+    // Calculate discounted price
+    const finalPrice = product.discount && product.discount > 0
+      ? selectedVariant.price * (1 - product.discount / 100)
+      : selectedVariant.price;
+
     addItem({
       productId: product._id,
       variantId: selectedVariant._id,
@@ -191,7 +193,7 @@ export default function ProductDetailScreen() {
       image: product.images[0],
       color: selectedColor,
       size: selectedSize,
-      price: selectedVariant.price,
+      price: finalPrice,
     });
 
     Toast.show({
@@ -469,13 +471,28 @@ export default function ProductDetailScreen() {
         }}
       >
         <View className="flex-1 px-5 py-4" style={{ borderColor: "#496c60" }}>
-          <Text className="font-bold text-lg" style={{ color: "#496c60" }}>
-            {
-              selectedVariant
-                ? formatPrice(selectedVariant.price) // Giá của variant đã chọn
-                : formatPrice(product.base_price) // Giá mặc định
-            }
-          </Text>
+          {product.discount && product.discount > 0 ? (
+            <View>
+              <Text 
+                className="text-sm text-gray-400 line-through mb-1"
+              >
+                {selectedVariant
+                  ? formatPrice(selectedVariant.price)
+                  : formatPrice(product.base_price)}
+              </Text>
+              <Text className="font-bold text-lg" style={{ color: "#496c60" }}>
+                {selectedVariant
+                  ? formatPrice(selectedVariant.price * (1 - product.discount / 100))
+                  : formatPrice(product.base_price * (1 - product.discount / 100))}
+              </Text>
+            </View>
+          ) : (
+            <Text className="font-bold text-lg" style={{ color: "#496c60" }}>
+              {selectedVariant
+                ? formatPrice(selectedVariant.price)
+                : formatPrice(product.base_price)}
+            </Text>
+          )}
         </View>
 
         <TouchableOpacity

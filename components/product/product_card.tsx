@@ -19,6 +19,9 @@ export default function ProductCard({
   image,
   discount,
 }: ProductCardProps) {
+  const finalPrice =
+    discount && discount > 0 ? Math.round(price * (1 - discount / 100)) : price;
+
   return (
     <TouchableOpacity
       className="w-[48%] bg-white rounded-2xl p-2 mb-4"
@@ -47,11 +50,14 @@ export default function ProductCard({
       </Text>
       <View className="flex-row items-center justify-between">
         <Text className="text-base font-bold" style={{ color: "#496c60" }}>
-          {price.toLocaleString()} đ
+          {finalPrice.toLocaleString()} đ
         </Text>
         {discount && discount > 0 && (
           <View className="bg-[#d1e7dd]  px-2 py-1 rounded">
-            <Text className="text-xs font-semibold" style={{ color: "#496c60" }}>
+            <Text
+              className="text-xs font-semibold"
+              style={{ color: "#496c60" }}
+            >
               -{discount}%
             </Text>
           </View>
