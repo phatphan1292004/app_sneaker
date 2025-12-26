@@ -5,6 +5,7 @@ export interface Profile {
   firebaseUid: string;
   username: string;
   email: string;
+  avatar?: string;
   phoneNumber?: string;
   birthDate?: string;
   gender?: string;
@@ -23,6 +24,11 @@ export const profileService = {
     >
   ) => {
     const res = await api.put(`/profile/${id}`, payload);
+    return res.data;
+  },
+
+  updateAvatar: async (id: string, avatar: string) => {
+    const res = await api.put(`/profile/${id}/avatar`, { avatar });
     return res.data;
   },
 };

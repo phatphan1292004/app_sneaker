@@ -9,7 +9,11 @@ interface CartItemProps {
   removeItem: (variantId: string) => void;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, updateQuantity, removeItem }) => {
+const CartItem: React.FC<CartItemProps> = ({
+  item,
+  updateQuantity,
+  removeItem,
+}) => {
   return (
     <View className="mb-4 bg-gray-50 rounded-2xl p-4 flex-row items-center relative">
       {/* Delete Button - Top Right */}
