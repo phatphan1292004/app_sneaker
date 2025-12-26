@@ -12,7 +12,7 @@ export interface CartItem {
   productId: string;
   variantId: string;
   name: string;
-  brand: string;
+  brand?: string;
   image: string;
   color: string;
   size: string;
@@ -28,6 +28,7 @@ interface CartContextType {
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  replaceCart: (newItems: CartItem[]) => void;
   getItemByVariant: (variantId: string) => CartItem | undefined;
 }
 
@@ -135,6 +136,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const getTotalPrice = () => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0);
   };
+  const replaceCart = (newItems: CartItem[]) => {
+    setItems(newItems);
+  };
 
   const getItemByVariant = (variantId: string) => {
     return items.find((i) => i.variantId === variantId);
@@ -151,6 +155,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         getTotalItems,
         getTotalPrice,
         getItemByVariant,
+        replaceCart,
       }}
     >
       {children}

@@ -1,9 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { logoutUser } from "@/services/authService";
+import { uploadToCloudinary } from "@/services/cloudinary";
+import { Profile, profileService } from "@/services/profileService";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StatusBar,
@@ -16,11 +20,40 @@ import Toast from "react-native-toast-message";
 export default function ProfileScreen() {
   const { user, loading } = useAuth();
 
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [fetchingProfile, setFetchingProfile] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  // firebaseUid từ auth
+  const firebaseUid = useMemo(
+    () => (user as any)?.uid || (user as any)?.firebaseUid,
+    [user]
+  );
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/auth/login");
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!firebaseUid) return;
+      try {
+        setFetchingProfile(true);
+        const res = await profileService.getByFirebaseUid(firebaseUid);
+        // backend bạn return: { success: true, data: user }
+        if (res?.success) setProfile(res.data);
+        else throw new Error(res?.message || "Load profile failed");
+      } catch (e: any) {
+        Toast.show({ type: "error", text1: "Error", text2: e.message });
+      } finally {
+        setFetchingProfile(false);
+      }
+    };
+
+    if (!loading && user) loadProfile();
+  }, [firebaseUid, loading, user]);
 
   const handleLogout = async () => {
     try {
@@ -37,6 +70,64 @@ export default function ProfileScreen() {
         text1: "Error",
         text2: error.message,
       });
+    }
+  };
+
+  const pickAndUploadAvatar = async () => {
+    if (!profile?._id) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Profile not loaded",
+      });
+      return;
+    }
+
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        Toast.show({
+          type: "error",
+          text1: "Permission",
+          text2: "Please allow photo access to change avatar.",
+        });
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (result.canceled) return;
+
+      const localUri = result.assets[0]?.uri;
+      if (!localUri) return;
+
+      setUploadingAvatar(true);
+
+      // 1) upload cloudinary -> lấy url
+      const url = await uploadToCloudinary(localUri);
+
+      // 2) update mongo
+      const updateRes = await profileService.updateAvatar(profile._id, url);
+      if (!updateRes?.success)
+        throw new Error(updateRes?.message || "Update avatar failed");
+
+      // 3) update UI
+      setProfile(updateRes.data);
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Avatar updated!",
+      });
+    } catch (e: any) {
+      Toast.show({ type: "error", text1: "Error", text2: e.message });
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
@@ -74,19 +165,47 @@ export default function ProfileScreen() {
       <ScrollView
         contentContainerStyle={{ paddingBottom: 150, paddingTop: 20 }}
       >
-        {/* Avatar và thông tin cơ bản */}
+        {/* Avatar + info */}
         <View className="items-center mb-6">
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=100&q=80",
-            }}
-            className="w-24 h-24 rounded-full mb-3 border-2 border-gray-200"
-          />
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={pickAndUploadAvatar}
+            className="relative"
+          >
+            <Image
+              source={{
+                uri:
+                  profile?.avatar ||
+                  "https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=100&q=80",
+              }}
+              className="w-24 h-24 rounded-full mb-3 border-2 border-gray-200"
+            />
 
-          <Text className="text-xl font-bold">
-            {user.displayName || "User"}
-          </Text>
-          <Text className="text-gray-500">{user.email}</Text>
+            {/* Loading overlay khi upload */}
+            {uploadingAvatar && (
+              <View className="absolute top-0 left-0 w-24 h-24 rounded-full items-center justify-center bg-black/30">
+                <ActivityIndicator />
+              </View>
+            )}
+
+            {/* icon edit */}
+            <View className="absolute bottom-2 right-2 w-7 h-7 rounded-full bg-white items-center justify-center border border-gray-200">
+              <Ionicons name="camera" size={16} color="#000" />
+            </View>
+          </TouchableOpacity>
+
+          {fetchingProfile ? (
+            <Text className="text-gray-500">Loading profile...</Text>
+          ) : (
+            <>
+              <Text className="text-xl font-bold">
+                {profile?.username || (user as any)?.displayName || "User"}
+              </Text>
+              <Text className="text-gray-500">
+                {profile?.email || (user as any)?.email}
+              </Text>
+            </>
+          )}
         </View>
 
         {/* Edit Profile */}
@@ -94,13 +213,8 @@ export default function ProfileScreen() {
           className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/edit" as any)}
         >
-          <Ionicons
-            name="create-outline"
-            size={24}
-            color="#000"
-            className="mr-3"
-          />
-          <Text className="text-gray-900 font-medium">Edit Profile</Text>
+          <Ionicons name="create-outline" size={24} color="#000" />
+          <Text className="text-gray-900 font-medium ml-3">Edit Profile</Text>
         </TouchableOpacity>
 
         {/* Address */}
@@ -108,13 +222,8 @@ export default function ProfileScreen() {
           className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/address" as any)}
         >
-          <Ionicons
-            name="location-outline"
-            size={24}
-            color="#000"
-            className="mr-3"
-          />
-          <Text className="text-gray-900 font-medium">Address</Text>
+          <Ionicons name="location-outline" size={24} color="#000" />
+          <Text className="text-gray-900 font-medium ml-3">Address</Text>
         </TouchableOpacity>
 
         {/* Notifications */}
@@ -122,13 +231,8 @@ export default function ProfileScreen() {
           className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/notifications" as any)}
         >
-          <Ionicons
-            name="notifications-outline"
-            size={24}
-            color="#000"
-            className="mr-3"
-          />
-          <Text className="text-gray-900 font-medium">Notifications</Text>
+          <Ionicons name="notifications-outline" size={24} color="#000" />
+          <Text className="text-gray-900 font-medium ml-3">Notifications</Text>
         </TouchableOpacity>
 
         {/* Order History */}
@@ -136,13 +240,8 @@ export default function ProfileScreen() {
           className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/orders_history" as any)}
         >
-          <Ionicons
-            name="receipt-outline"
-            size={24}
-            color="#000"
-            className="mr-3"
-          />
-          <Text className="text-gray-900 font-medium">Order History</Text>
+          <Ionicons name="receipt-outline" size={24} color="#000" />
+          <Text className="text-gray-900 font-medium ml-3">Order History</Text>
         </TouchableOpacity>
 
         {/* Contact Support */}
@@ -150,13 +249,10 @@ export default function ProfileScreen() {
           className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={() => router.push("/profile/support" as any)}
         >
-          <Ionicons
-            name="help-circle-outline"
-            size={24}
-            color="#000"
-            className="mr-3"
-          />
-          <Text className="text-gray-900 font-medium">Contact Support</Text>
+          <Ionicons name="help-circle-outline" size={24} color="#000" />
+          <Text className="text-gray-900 font-medium ml-3">
+            Contact Support
+          </Text>
         </TouchableOpacity>
 
         {/* Logout */}
@@ -164,13 +260,8 @@ export default function ProfileScreen() {
           className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
           onPress={handleLogout}
         >
-          <Ionicons
-            name="log-out-outline"
-            size={24}
-            color="#000"
-            className="mr-3"
-          />
-          <Text className="text-gray-900 font-medium">Logout</Text>
+          <Ionicons name="log-out-outline" size={24} color="#000" />
+          <Text className="text-gray-900 font-medium ml-3">Logout</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

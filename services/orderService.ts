@@ -15,6 +15,7 @@ export interface ApiOrderItem {
     name: string;
     description: string;
     images: string[];
+    brand?: string;
     id: string;
   };
   variant_id: {
@@ -124,5 +125,15 @@ export const orderService = {
   ): Promise<{ success: boolean; status?: string }> => {
     const response = await api.get(`/order/${orderId}`);
     return response.data;
+  },
+
+  cancelOrder: async (orderId: string) => {
+    const { data } = await api.post(`/order/${orderId}/cancel`);
+    return data;
+  },
+
+  reorder: async (orderId: string) => {
+    const { data } = await api.post(`/order/${orderId}/reorder`);
+    return data;
   },
 };
