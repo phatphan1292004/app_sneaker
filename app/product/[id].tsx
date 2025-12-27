@@ -1,7 +1,9 @@
 import ProductReview from "@/components/product/ProductReview";
 import SimpleTabBar from "@/components/tabbar/SimpleTabBar";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useProductDetail } from "@/hooks/useProductDetail";
+import { favoriteService } from "@/services/favoriteService";
 import { reviewService, Review as ReviewType } from "@/services/reviewService";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -25,6 +27,7 @@ export default function ProductDetailScreen() {
   const productId = params.id as string;
 
   const { product, loading, error } = useProductDetail(productId);
+  console.log(product);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [submittingReplyId, setSubmittingReplyId] = useState<
     string | undefined
@@ -93,6 +96,7 @@ export default function ProductDetailScreen() {
   }, [productId]);
 
   const { addItem } = useCart();
+  const { user } = useAuth();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string>("");
@@ -101,6 +105,25 @@ export default function ProductDetailScreen() {
   const [activeTab, setActiveTab] = useState<"description" | "review">(
     "description"
   );
+
+  // Check if product is in favorites on load
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!user || !product) return;
+
+      try {
+        const result = await favoriteService.getUserFavorites(user.uid);
+        if (result.success) {
+          const isFav = result.data.some((p) => p._id === product._id);
+          setIsFavorite(isFav);
+        }
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [user, product]);
 
   // Get unique colors from variants
   const availableColors = useMemo(() => {
@@ -155,6 +178,48 @@ export default function ProductDetailScreen() {
       (v) => v.color === selectedColor && v.size === selectedSize
     );
   }, [product, selectedColor, selectedSize]);
+
+  // Handle toggle favorite
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      Toast.show({
+        type: "error",
+        text1: "Login Required",
+        text2: "Please log in to add products to favorites",
+        position: "bottom",
+      });
+      return;
+    }
+
+    if (!product) return;
+
+    try {
+      const result = await favoriteService.toggleFavorite(user.uid, product._id);
+
+      if (result.success) {
+        setIsFavorite(!isFavorite);
+        Toast.show({
+          type: "success",
+          text1: result.message,
+          position: "bottom",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Failed",
+          text2: result.message,
+          position: "bottom",
+        });
+      }
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: error.message || "Failed to update favorite",
+        position: "bottom",
+      });
+    }
+  };
 
   // Handle add to cart
   const handleAddToCart = () => {
@@ -235,7 +300,7 @@ export default function ProductDetailScreen() {
     <View className="flex-1 bg-white mt-5">
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="px-5 py-4 flex-row items-center justify-between">
+        <View className="px-5 py-2 flex-row items-center justify-between">
           <TouchableOpacity
             onPress={() => router.back()}
             className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
@@ -245,13 +310,16 @@ export default function ProductDetailScreen() {
 
           <Image
             source={{
-              uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+              uri: typeof product.brand_id === "object" && product.brand_id.logo
+                ? product.brand_id.logo
+                : "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
             }}
             className="w-14 h-14 rounded-lg"
+            resizeMode="contain"
           />
 
           <TouchableOpacity
-            onPress={() => setIsFavorite(!isFavorite)}
+            onPress={handleToggleFavorite}
             className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center"
           >
             <Ionicons
@@ -323,9 +391,33 @@ export default function ProductDetailScreen() {
           <Text className="text-sm text-gray-500 mb-2 font-semibold color-[#496c60]">
             {brandName}
           </Text>
-          <Text className="text-2xl font-bold text-gray-900 mb-6">
+          <Text className="text-2xl font-bold text-gray-900 mb-3">
             {product.name}
           </Text>
+
+          {/* Discount and Sold Info */}
+          <View className="flex-row items-center mb-6" style={{ gap: 8 }}>
+            {product.discount && product.discount > 0 && (
+              <View
+                className="px-3 py-1 rounded-full"
+                style={{ backgroundColor: "#fee2e2" }}
+              >
+                <Text className="text-xs font-bold" style={{ color: "#dc2626" }}>
+                  -{product.discount}% OFF
+                </Text>
+              </View>
+            )}
+            {product.sold && product.sold > 0 && (
+              <View
+                className="px-3 py-1 rounded-full"
+                style={{ backgroundColor: "#dbeafe" }}
+              >
+                <Text className="text-xs font-semibold" style={{ color: "#2563eb" }}>
+                  {product.sold} Sold
+                </Text>
+              </View>
+            )}
+          </View>
 
           {/* Select Color */}
           {availableColors.length > 0 && (
@@ -473,7 +565,7 @@ export default function ProductDetailScreen() {
         <View className="flex-1 px-5 py-4" style={{ borderColor: "#496c60" }}>
           {product.discount && product.discount > 0 ? (
             <View>
-              <Text 
+              <Text
                 className="text-sm text-gray-400 line-through mb-1"
               >
                 {selectedVariant
