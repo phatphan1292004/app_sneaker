@@ -24,7 +24,7 @@ export default function ProductCard({
 
   return (
     <TouchableOpacity
-      className="w-[48%] bg-white rounded-2xl p-2 mb-4"
+      className="w-[48%] bg-white rounded-2xl p-2 mb-4 flex"
       onPress={() =>
         router.push({
           pathname: "/product/[id]" as any,
@@ -32,28 +32,34 @@ export default function ProductCard({
         })
       }
     >
+      {/* IMAGE */}
       <Image
         source={{ uri: image }}
-        className="w-full h-32 rounded-xl mb-3"
+        className="w-full h-32 rounded-xl mb-2"
         resizeMode="cover"
       />
-      {brand && (
-        <Text className="text-xs text-gray-500 mb-1 uppercase font-medium">
-          {brand}
+
+      {/* CONTENT */}
+      <View className="flex-1">
+        {brand && (
+          <Text className="text-xs text-gray-500 mb-1 uppercase font-medium">
+            {brand}
+          </Text>
+        )}
+
+        <Text className="text-sm font-semibold text-gray-900" numberOfLines={2}>
+          {name}
         </Text>
-      )}
-      <Text
-        className="text-sm font-semibold text-gray-900 mb-2"
-        numberOfLines={2}
-      >
-        {name}
-      </Text>
-      <View className="flex-row items-center justify-between">
+      </View>
+
+      {/* PRICE - ALWAYS AT BOTTOM */}
+      <View className="flex-row items-center justify-between mt-2">
         <Text className="text-base font-bold" style={{ color: "#496c60" }}>
           {finalPrice.toLocaleString()} đ
         </Text>
+
         {discount && discount > 0 && (
-          <View className="bg-[#d1e7dd]  px-2 py-1 rounded">
+          <View className="bg-[#d1e7dd] px-2 py-1 rounded">
             <Text
               className="text-xs font-semibold"
               style={{ color: "#496c60" }}

@@ -1,5 +1,7 @@
+import AllIcon from "@/components/icons/AllIcon";
 import { brandService } from "@/services/brandService";
 import { useEffect, useState } from "react";
+
 export function useBrands() {
   const [brands, setBrands] = useState<any[]>([]);
 
@@ -12,6 +14,7 @@ export function useBrands() {
             _id: "ALL",
             name: "ALL",
             logo: "",
+            icon: AllIcon,
           },
           ...res.data,
         ]);

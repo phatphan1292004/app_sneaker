@@ -13,7 +13,7 @@ export default function BrandScreen() {
   const filters = useFilters();
   const products = useProducts(filters);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  
+
   // Temporary filters for modal
   const [tempFilters, setTempFilters] = useState({
     price: filters.selectedPrice,
@@ -151,11 +151,19 @@ export default function BrandScreen() {
                     borderColor: "#496c60",
                   }}
                 >
-                  <Image
-                    source={{ uri: brand.logo }}
-                    className="w-10 h-10"
-                    resizeMode="contain"
-                  />
+                  {brand.icon ? (
+                    <brand.icon
+                      width={40}
+                      height={40}
+                      color={filters.selectedBrand === brand._id ? "#496c60" : "#6b7280"}
+                    />
+                  ) : (
+                    <Image
+                      source={{ uri: brand.logo }}
+                      className="w-10 h-10"
+                      resizeMode="contain"
+                    />
+                  )}
                 </View>
                 <Text
                   className="text-xs font-medium"
@@ -180,10 +188,11 @@ export default function BrandScreen() {
               <ProductCard
                 key={product._id}
                 id={product._id}
-                name={product.name}
                 brand={product.brand_id?.name}
+                name={product.name}
                 price={product.base_price}
                 image={product.images[0]}
+                discount={product.discount}
               />
             ))}
           </View>
