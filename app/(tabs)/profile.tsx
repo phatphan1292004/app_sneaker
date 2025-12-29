@@ -1,11 +1,13 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { logoutUser } from "@/services/authService";
 import { uploadToCloudinary } from "@/services/cloudinary";
+import { notificationService } from "@/services/notificationService";
 import { Profile, profileService } from "@/services/profileService";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
-import React, { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+
 import {
   ActivityIndicator,
   Image,
@@ -19,6 +21,7 @@ import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
   const { user, loading } = useAuth();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [fetchingProfile, setFetchingProfile] = useState(false);
@@ -28,6 +31,21 @@ export default function ProfileScreen() {
   const firebaseUid = useMemo(
     () => (user as any)?.uid || (user as any)?.firebaseUid,
     [user]
+  );
+  const fetchUnreadCount = useCallback(async () => {
+    if (!firebaseUid) return;
+    try {
+      const res = await notificationService.unreadCount(firebaseUid);
+      setUnreadCount(res.data?.count || 0);
+    } catch (e) {
+      console.log("fetch unread error", e);
+    }
+  }, [firebaseUid]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnreadCount();
+    }, [fetchUnreadCount])
   );
 
   useEffect(() => {
@@ -228,11 +246,30 @@ export default function ProfileScreen() {
 
         {/* Notifications */}
         <TouchableOpacity
-          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5"
-          onPress={() => router.push("/profile/notifications" as any)}
+          className="bg-white p-4 rounded-lg mb-3 flex-row items-center mx-5 justify-between"
+          onPress={async () => {
+            await router.push("/profile/notifications" as any);
+            const res = await notificationService.unreadCount(firebaseUid);
+            setUnreadCount(res.data?.count || 0);
+          }}
         >
-          <Ionicons name="notifications-outline" size={24} color="#000" />
-          <Text className="text-gray-900 font-medium ml-3">Notifications</Text>
+          <View className="flex-row items-center">
+            <Ionicons name="notifications-outline" size={24} color="#000" />
+            <Text className="text-gray-900 font-medium ml-3">
+              Notifications
+            </Text>
+          </View>
+
+          {unreadCount > 0 && (
+            <View
+              className="min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center"
+              style={{ backgroundColor: "red" }}
+            >
+              <Text className="text-white text-[11px] font-bold">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         {/* Order History */}

@@ -72,4 +72,11 @@ export const productService = {
     const response = await api.get(`/product/${productId}`);
     return response.data;
   },
+
+  searchProducts: async (q: string, page = 1, limit = 20) => {
+    const res = await api.get("/product/search", {
+      params: { q, page, limit },
+    });
+    return res.data;
+  },
 };
