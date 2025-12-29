@@ -3,8 +3,9 @@ import HomeBanner from "@/components/home/HomeBanner";
 import ProductSection from "@/components/product/product_section";
 import { useBrands } from "@/hooks/useBrands";
 import { useProducts } from "@/hooks/useProducts";
+import { useProductSearch } from "@/hooks/useProductSearch";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -12,19 +13,25 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function HomeScreen() {
   const { brands, loading: brandsLoading } = useBrands();
-  const { 
-    forYouProducts, 
-    popularProducts, 
-    newestProducts, 
-    loading: productsLoading 
+  const {
+    forYouProducts,
+    popularProducts,
+    newestProducts,
+    loading: productsLoading,
   } = useProducts();
 
+  const [searchText, setSearchText] = useState("");
+  const { results: searchResults, loading: searchLoading } =
+    useProductSearch(searchText);
+
   const loading = brandsLoading || productsLoading;
+
+  const isSearching = useMemo(() => searchText.trim().length > 0, [searchText]);
 
   if (loading) {
     return (
@@ -34,7 +41,7 @@ export default function HomeScreen() {
       </View>
     );
   }
-  
+
   return (
     <View className="flex-1 bg-gray-100 mt-5">
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -64,20 +71,52 @@ export default function HomeScreen() {
           <View className="flex-row items-center bg-white rounded-xl px-4 py-3">
             <Ionicons name="search" size={20} color="#9ca3af" />
             <TextInput
-              placeholder="Search Collections..."
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholder="Search products..."
               placeholderTextColor="#9ca3af"
               className="flex-1 ml-2 text-gray-900"
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="search"
             />
+            {!!searchText && (
+              <TouchableOpacity onPress={() => setSearchText("")}>
+                <Ionicons name="close-circle" size={20} color="#9ca3af" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
-        {/* Popular Brand */}
-        <BrandFilter brands={brands} />
+        {/* Nếu đang search thì hiển thị kết quả, không thì hiển thị home sections */}
+        {isSearching ? (
+          <View className="px-0">
+            <View className="px-5 mb-2 flex-row items-center justify-between">
+              <Text className="text-base font-semibold text-gray-900">
+                Results for “{searchText.trim()}”
+              </Text>
+              {searchLoading && <ActivityIndicator size="small" color="#000" />}
+            </View>
 
-        {/* Product Sections */}
-        <ProductSection title="For you" products={forYouProducts} />
-        <ProductSection title="Popular" products={popularProducts} />
-        <ProductSection title="Newest" products={newestProducts} />
+            {!searchLoading && searchResults.length === 0 ? (
+              <View className="px-5 py-6">
+                <Text className="text-gray-500">No products found.</Text>
+              </View>
+            ) : (
+              <ProductSection title="Search results" products={searchResults} />
+            )}
+          </View>
+        ) : (
+          <>
+            {/* Popular Brand */}
+            <BrandFilter brands={brands} />
+
+            {/* Product Sections */}
+            <ProductSection title="For you" products={forYouProducts} />
+            <ProductSection title="Popular" products={popularProducts} />
+            <ProductSection title="Newest" products={newestProducts} />
+          </>
+        )}
       </ScrollView>
     </View>
   );

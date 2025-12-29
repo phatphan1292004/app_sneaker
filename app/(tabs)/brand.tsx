@@ -1,18 +1,37 @@
-import ProductCard from "@/components/product/product_card";
-import React, { useState } from "react";
-
 import FilterIcon from "@/components/icons/FilterIcon";
-import { Image, Modal, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import ProductCard from "@/components/product/product_card";
+import React, { useEffect, useState } from "react";
+import {
+  Image,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 import { useBrands } from "@/hooks/useBrandFilters";
 import { useFilters } from "@/hooks/useFilters";
 import { useProducts } from "@/hooks/useProductsFilters";
-
+import { useLocalSearchParams } from "expo-router";
 export default function BrandScreen() {
+  const { slug } = useLocalSearchParams<{ slug?: string }>();
   const brands = useBrands();
   const filters = useFilters();
   const products = useProducts(filters);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+    if (!brands || brands.length === 0) return;
+
+    // tìm brand theo slug
+    const matchedBrand = brands.find((b) => b.slug === slug);
+
+    if (matchedBrand && filters.selectedBrand !== matchedBrand._id) {
+      filters.setSelectedBrand(matchedBrand._id);
+    }
+  }, [slug, brands]);
 
   // Temporary filters for modal
   const [tempFilters, setTempFilters] = useState({
@@ -144,9 +163,7 @@ export default function BrandScreen() {
                   className="w-16 h-16 rounded-full items-center justify-center mb-2"
                   style={{
                     backgroundColor:
-                      filters.selectedBrand === brand._id
-                        ? "#d1e7dd"
-                        : "#fff",
+                      filters.selectedBrand === brand._id ? "#d1e7dd" : "#fff",
                     borderWidth: filters.selectedBrand === brand._id ? 2 : 0,
                     borderColor: "#496c60",
                   }}
@@ -155,7 +172,11 @@ export default function BrandScreen() {
                     <brand.icon
                       width={40}
                       height={40}
-                      color={filters.selectedBrand === brand._id ? "#496c60" : "#6b7280"}
+                      color={
+                        filters.selectedBrand === brand._id
+                          ? "#496c60"
+                          : "#6b7280"
+                      }
                     />
                   ) : (
                     <Image
@@ -207,7 +228,7 @@ export default function BrandScreen() {
         onRequestClose={() => setIsFilterModalVisible(false)}
       >
         <View className="flex-1 justify-end bg-black/50">
-          <View className="bg-white rounded-t-3xl" style={{ maxHeight: '80%' }}>
+          <View className="bg-white rounded-t-3xl" style={{ maxHeight: "80%" }}>
             {/* Modal Header */}
             <View className="px-5 py-4 border-b border-gray-200 flex-row items-center justify-between">
               <Text className="text-lg font-bold text-gray-900">Filters</Text>
@@ -221,37 +242,29 @@ export default function BrandScreen() {
               <Text className="text-base font-semibold text-gray-900 mb-2">
                 Price
               </Text>
-              {renderFilterOptions(
-                priceOptions,
-                tempFilters.price,
-                (id) => setTempFilters({ ...tempFilters, price: id })
+              {renderFilterOptions(priceOptions, tempFilters.price, (id) =>
+                setTempFilters({ ...tempFilters, price: id })
               )}
 
               <Text className="text-base font-semibold text-gray-900 mb-2">
                 Sort
               </Text>
-              {renderFilterOptions(
-                sortOptions,
-                tempFilters.sort,
-                (id) => setTempFilters({ ...tempFilters, sort: id })
+              {renderFilterOptions(sortOptions, tempFilters.sort, (id) =>
+                setTempFilters({ ...tempFilters, sort: id })
               )}
 
               <Text className="text-base font-semibold text-gray-900 mb-2">
                 Size
               </Text>
-              {renderFilterOptions(
-                sizeOptions,
-                tempFilters.size,
-                (id) => setTempFilters({ ...tempFilters, size: id })
+              {renderFilterOptions(sizeOptions, tempFilters.size, (id) =>
+                setTempFilters({ ...tempFilters, size: id })
               )}
 
               <Text className="text-base font-semibold text-gray-900 mb-2">
                 Color
               </Text>
-              {renderFilterOptions(
-                colorOptions,
-                tempFilters.color,
-                (id) => setTempFilters({ ...tempFilters, color: id })
+              {renderFilterOptions(colorOptions, tempFilters.color, (id) =>
+                setTempFilters({ ...tempFilters, color: id })
               )}
             </ScrollView>
 
