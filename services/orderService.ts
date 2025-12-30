@@ -2,6 +2,7 @@ import api from "./api";
 
 // OrderItem for creating order (sending to API)
 export interface OrderItem {
+  brand?: string;
   product_id: string;
   variant_id: string;
   quantity: number;
@@ -24,6 +25,7 @@ export interface ApiOrderItem {
     size: string;
     price: number;
   };
+  brand?: string;
   quantity: number;
   price: number;
   _id: string;

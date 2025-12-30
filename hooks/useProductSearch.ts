@@ -1,7 +1,7 @@
 import { productService } from "@/services/productService";
 import { useEffect, useRef, useState } from "react";
 
-export function useProductSearch(keyword: string) {
+export function useProductSearch(keyword: string, mapForSuggestions = true) {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,21 @@ export function useProductSearch(keyword: string) {
         // bỏ qua response cũ
         if (lastReqRef.current !== reqId) return;
 
-        setResults(res.data || []);
+        if (mapForSuggestions) {
+          // Map data to correct format for SearchSuggestions
+          const mappedResults = (res.data || []).map((product: any) => ({
+            id: product._id,
+            name: product.name,
+            price: product.base_price,
+            image: product.images?.[0] || '',
+            brand: typeof product.brand_id === 'object' ? product.brand_id.name : '',
+            discount: product.discount || 0,
+          }));
+          setResults(mappedResults);
+        } else {
+          // Return raw data for ProductSection
+          setResults(res.data || []);
+        }
       } catch (e: any) {
         if (lastReqRef.current !== reqId) return;
         setError(e?.message || "Search failed");

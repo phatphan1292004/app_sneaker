@@ -119,6 +119,7 @@ export default function CheckoutScreen() {
       const orderData = {
         user_id: user.uid,
         items: items.map((item) => ({
+          brand: item.brand,
           product_id: item.productId,
           variant_id: item.variantId,
           quantity: item.quantity,
