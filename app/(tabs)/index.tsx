@@ -1,10 +1,12 @@
 import BrandFilter from "@/components/home/BrandFilter";
 import HomeBanner from "@/components/home/HomeBanner";
+import SearchSuggestions from "@/components/home/SearchSuggestions";
 import ProductSection from "@/components/product/product_section";
 import { useBrands } from "@/hooks/useBrands";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductSearch } from "@/hooks/useProductSearch";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -26,12 +28,38 @@ export default function HomeScreen() {
   } = useProducts();
 
   const [searchText, setSearchText] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
   const { results: searchResults, loading: searchLoading } =
     useProductSearch(searchText);
 
   const loading = brandsLoading || productsLoading;
 
   const isSearching = useMemo(() => searchText.trim().length > 0, [searchText]);
+
+  const handleSearchSubmit = () => {
+    if (searchText.trim()) {
+      setShowSuggestions(false);
+      router.push({
+        pathname: "/search",
+        params: { query: searchText.trim() },
+      });
+    }
+  };
+
+  const handleProductSelect = (productId: string) => {
+    setShowSuggestions(false);
+    setSearchText("");
+    router.push(`/product/${productId}`);
+  };
+
+  const handleSeeAllResults = () => {
+    setShowSuggestions(false);
+    router.push({
+      pathname: "/search",
+      params: { query: searchText.trim() },
+    });
+  };
 
   if (loading) {
     return (
@@ -67,12 +95,21 @@ export default function HomeScreen() {
         <HomeBanner />
 
         {/* Search Bar */}
-        <View className="mx-5 mb-4">
+        <View className="mx-5 mb-4 z-50">
           <View className="flex-row items-center bg-white rounded-xl px-4 py-3">
             <Ionicons name="search" size={20} color="#9ca3af" />
             <TextInput
               value={searchText}
-              onChangeText={setSearchText}
+              onChangeText={(text) => {
+                setSearchText(text);
+                setShowSuggestions(text.trim().length > 0);
+              }}
+              onSubmitEditing={handleSearchSubmit}
+              onFocus={() => {
+                if (searchText.trim().length > 0) {
+                  setShowSuggestions(true);
+                }
+              }}
               placeholder="Search products..."
               placeholderTextColor="#9ca3af"
               className="flex-1 ml-2 text-gray-900"
@@ -81,42 +118,37 @@ export default function HomeScreen() {
               returnKeyType="search"
             />
             {!!searchText && (
-              <TouchableOpacity onPress={() => setSearchText("")}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchText("");
+                  setShowSuggestions(false);
+                }}
+              >
                 <Ionicons name="close-circle" size={20} color="#9ca3af" />
               </TouchableOpacity>
             )}
           </View>
+
+          {/* Search Suggestions Dropdown */}
+          {showSuggestions && isSearching && (
+            <SearchSuggestions
+              results={searchResults}
+              loading={searchLoading}
+              onSelectProduct={handleProductSelect}
+              onSeeAll={handleSeeAllResults}
+            />
+          )}
         </View>
 
-        {/* Nếu đang search thì hiển thị kết quả, không thì hiển thị home sections */}
-        {isSearching ? (
-          <View className="px-0">
-            <View className="px-5 mb-2 flex-row items-center justify-between">
-              <Text className="text-base font-semibold text-gray-900">
-                Results for “{searchText.trim()}”
-              </Text>
-              {searchLoading && <ActivityIndicator size="small" color="#000" />}
-            </View>
+        <>
+          {/* Popular Brand */}
+          <BrandFilter brands={brands} />
 
-            {!searchLoading && searchResults.length === 0 ? (
-              <View className="px-5 py-6">
-                <Text className="text-gray-500">No products found.</Text>
-              </View>
-            ) : (
-              <ProductSection title="Search results" products={searchResults} />
-            )}
-          </View>
-        ) : (
-          <>
-            {/* Popular Brand */}
-            <BrandFilter brands={brands} />
-
-            {/* Product Sections */}
-            <ProductSection title="For you" products={forYouProducts} />
-            <ProductSection title="Popular" products={popularProducts} />
-            <ProductSection title="Newest" products={newestProducts} />
-          </>
-        )}
+          {/* Product Sections */}
+          <ProductSection title="For you" products={forYouProducts} />
+          <ProductSection title="Popular" products={popularProducts} />
+          <ProductSection title="Newest" products={newestProducts} />
+        </>
       </ScrollView>
     </View>
   );

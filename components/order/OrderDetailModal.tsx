@@ -42,6 +42,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const canCancel = status === "pending";
   const canReorder = status === "paid" || status === "cancelled";
 
+  console.log("OrderDetailModal render, order:", order);
   const cartItemsFromOrder: CartItemType[] = useMemo(() => {
     if (!order) return [];
 
@@ -54,7 +55,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
       size: it.variant_id.size,
       price: it.price ?? it.variant_id.price,
       quantity: it.quantity,
-      brand: it.product_id.brand || "",
+      brand: it.brand || "",
     }));
   }, [order]);
 

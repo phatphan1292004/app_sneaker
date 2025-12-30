@@ -27,7 +27,6 @@ export default function ProductDetailScreen() {
   const productId = params.id as string;
 
   const { product, loading, error } = useProductDetail(productId);
-  console.log(product);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [submittingReplyId, setSubmittingReplyId] = useState<
     string | undefined
