@@ -28,7 +28,7 @@ export default function BrandFilter({ brands }: BrandFilterProps) {
         <Text className="text-lg font-bold text-gray-900">Popular Brand</Text>
         <TouchableOpacity onPress={() => router.push("/(tabs)/brand")}>
           <Text className="text-sm" style={{ color: "#496c60" }}>
-            See all →
+            View all →
           </Text>
         </TouchableOpacity>
       </View>

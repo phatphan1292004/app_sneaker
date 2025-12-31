@@ -48,11 +48,13 @@ export default function ProfileScreen() {
     }, [fetchUnreadCount])
   );
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/auth/login");
-    }
-  }, [user, loading]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading && !user) {
+        router.replace("/auth/login");
+      }
+    }, [user, loading])
+  );
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -160,7 +162,7 @@ export default function ProfileScreen() {
   if (!user) return null;
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100 pt-12">
       {/* Header */}
       <View
         className="px-5 py-4 border-b border-gray-200 flex-row items-center"

@@ -42,7 +42,6 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
   const canCancel = status === "pending";
   const canReorder = status === "paid" || status === "cancelled";
 
-  console.log("OrderDetailModal render, order:", order);
   const cartItemsFromOrder: CartItemType[] = useMemo(() => {
     if (!order) return [];
 
@@ -208,7 +207,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
                       <Image
                         source={{ uri: item.product_id.images[0] }}
                         className="w-20 h-20 rounded-lg mr-3"
-                        resizeMode="cover"
+                        resizeMode="contain"
                       />
                     )}
 
@@ -255,7 +254,7 @@ const OrderDetailModal: React.FC<OrderDetailModalProps> = ({
               </View>
 
               {/* Footer actions */}
-              <View className="mt-4 flex-row space-x-3">
+              <View className="mt-4 flex-row gap-3">
                 {/* Close */}
                 <TouchableOpacity
                   onPress={onClose}

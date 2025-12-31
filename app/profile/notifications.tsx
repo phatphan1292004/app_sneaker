@@ -15,7 +15,7 @@ export default function NotificationsScreen() {
       {/* Header custom giống Address */}
       <View
         className="px-5 py-4 border-b border-gray-200 flex-row items-center justify-between"
-        style={{ paddingTop: 40 }}
+        style={{ paddingTop: 60 }}
       >
         <TouchableOpacity
           onPress={() => router.back()}

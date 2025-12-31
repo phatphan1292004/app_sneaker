@@ -80,7 +80,7 @@ export default function OrdersHistoryScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white pt-12">
       {/* Header */}
       <View
         className="px-5 py-4 flex-row items-center"
@@ -93,7 +93,7 @@ export default function OrdersHistoryScreen() {
       </View>
 
       {/* Tabs */}
-      <View className="px-5 mb-2 flex-row space-x-2">
+      <View className="px-5 mb-2 gap-3 flex-row space-x-2">
         <TabButton label="PAID" value="paid" />
         <TabButton label="PENDING" value="pending" />
         <TabButton label="CANCELLED" value="cancelled" />
@@ -130,16 +130,19 @@ export default function OrdersHistoryScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => openOrderDetail(order._id)}>
-                  <Text style={{ color: "#496c60" }}>Order Details</Text>
+                  <Text className="font-semibold" style={{ color: "#496c60" }}>Order Details</Text>
                 </TouchableOpacity>
               </View>
 
               <View className="flex-row">
                 {firstItem.product_id.images?.[0] && (
-                  <Image
-                    source={{ uri: firstItem.product_id.images[0] }}
-                    className="w-20 h-20 rounded-xl mr-3"
-                  />
+                  <View className="rounded-xl mr-3 overflow-hidden bg-gray-50">
+                    <Image
+                      source={{ uri: firstItem.product_id.images[0] }}
+                      className="w-20 h-20"
+                      resizeMode="contain"
+                    />
+                  </View>
                 )}
                 <View className="flex-1">
                   <Text className="font-semibold">
