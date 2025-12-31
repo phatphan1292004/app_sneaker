@@ -2,6 +2,7 @@ import BrandFilter from "@/components/home/BrandFilter";
 import HomeBanner from "@/components/home/HomeBanner";
 import SearchSuggestions from "@/components/home/SearchSuggestions";
 import ProductSection from "@/components/product/product_section";
+import { useAuth } from "@/contexts/AuthContext";
 import { useBrands } from "@/hooks/useBrands";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductSearch } from "@/hooks/useProductSearch";
@@ -26,16 +27,13 @@ export default function HomeScreen() {
     newestProducts,
     loading: productsLoading,
   } = useProducts();
-
   const [searchText, setSearchText] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
-
   const { results: searchResults, loading: searchLoading } =
     useProductSearch(searchText);
-
   const loading = brandsLoading || productsLoading;
-
   const isSearching = useMemo(() => searchText.trim().length > 0, [searchText]);
+  const { user } = useAuth();
 
   const handleSearchSubmit = () => {
     if (searchText.trim()) {
@@ -71,7 +69,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-gray-100 mt-5">
+    <View className="flex-1 bg-gray-100 pt-14">
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-5 pt-3 pb-2 flex-row items-center justify-between">
@@ -83,7 +81,7 @@ export default function HomeScreen() {
               className="w-14 h-14 rounded-lg"
             />
             <View className="ml-3">
-              <Text className="text-sm text-gray-500">Welcome, Jelly 👋</Text>
+              <Text className="text-sm text-gray-500">Welcome, {user ? user.displayName : "Guest"} 👋</Text>
             </View>
           </View>
           <TouchableOpacity>
@@ -112,7 +110,7 @@ export default function HomeScreen() {
               }}
               placeholder="Search products..."
               placeholderTextColor="#9ca3af"
-              className="flex-1 ml-2 text-gray-900"
+              className="flex-1 ml-2 text-gray-900 py-3"
               autoCorrect={false}
               autoCapitalize="none"
               returnKeyType="search"

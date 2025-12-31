@@ -25,11 +25,11 @@ const CartItem: React.FC<CartItemProps> = ({
       </TouchableOpacity>
 
       {/* Product Image */}
-      <View className="rounded-xl mr-4 overflow-hidden">
+      <View className="rounded-xl mr-4 overflow-hidden bg-white">
         <Image
           source={{ uri: item.image }}
-          className="w-20 h-20"
-          resizeMode="cover"
+          className="w-24 h-24"
+          resizeMode="contain"
         />
       </View>
 

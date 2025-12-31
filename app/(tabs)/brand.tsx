@@ -20,6 +20,7 @@ export default function BrandScreen() {
   const filters = useFilters();
   const products = useProducts(filters);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
+  console.log("products in BrandScreen:", products);
 
   useEffect(() => {
     if (!slug) return;
@@ -127,7 +128,7 @@ export default function BrandScreen() {
   };
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100 pt-14">
       {/* Header */}
       <View className="px-5 py-4 flex-row items-center justify-between">
         <Image
@@ -205,17 +206,20 @@ export default function BrandScreen() {
         {/* PRODUCT LIST */}
         <View className="px-5 pb-6">
           <View className="flex-row flex-wrap justify-between">
-            {products.map((product) => (
-              <ProductCard
-                key={product._id}
-                id={product._id}
-                brand={product.brand_id?.name}
-                name={product.name}
-                price={product.base_price}
-                image={product.images[0]}
-                discount={product.discount}
-              />
-            ))}
+            {products.map((product) => {
+              const brand = brands?.find((b) => b._id === product.brand_id);
+              return (
+                <ProductCard
+                  key={product._id}
+                  id={product._id}
+                  brand={brand?.name || ""}
+                  name={product.name}
+                  price={product.base_price}
+                  image={product.images[0]}
+                  discount={product.discount}
+                />
+              );
+            })}
           </View>
         </View>
       </ScrollView>

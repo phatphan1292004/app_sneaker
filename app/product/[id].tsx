@@ -296,7 +296,7 @@ export default function ProductDetailScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white mt-5">
+    <View className="flex-1 bg-white pt-12">
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-5 py-2 flex-row items-center justify-between">

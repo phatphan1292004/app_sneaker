@@ -1,9 +1,11 @@
 import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
-    User,
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  User,
 } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { userService } from "./userService";
@@ -82,4 +84,30 @@ export const logoutUser = async (): Promise<void> => {
 // Lấy user hiện tại
 export const getCurrentUser = (): User | null => {
   return auth.currentUser;
+};
+
+// Đăng nhập bằng Google
+export const loginWithGoogle = async (idToken: string): Promise<User> => {
+  try {
+    const credential = GoogleAuthProvider.credential(idToken);
+    const userCredential = await signInWithCredential(auth, credential);
+    const user = userCredential.user;
+
+    // Sync user data xuống MongoDB
+    try {
+      await userService.createUser({
+        firebaseUid: user.uid,
+        username: user.displayName || "Google User",
+        email: user.email || "",
+        avatar: user.photoURL || undefined,
+      });
+      console.log("Google user synced to MongoDB successfully");
+    } catch (syncError) {
+      console.error("Failed to sync Google user to MongoDB:", syncError);
+    }
+
+    return user;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
 };

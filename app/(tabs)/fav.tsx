@@ -145,7 +145,7 @@ export default function FavScreen() {
 
   // Favorites list
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100 pt-12">
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -158,7 +158,7 @@ export default function FavScreen() {
         }
       >
         {/* Header */}
-        <View className="px-5 py-4 bg-white flex-row items-center">
+        <View className="px-5 py-4 bg-gray-100 flex-row items-center">
           <TouchableOpacity
             onPress={() => router.back()}
             className="w-10 h-10 bg-gray-100 rounded-full items-center justify-center mr-3"

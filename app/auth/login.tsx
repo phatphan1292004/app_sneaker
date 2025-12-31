@@ -1,7 +1,9 @@
-import { loginUser } from "@/services/authService";
+import { loginUser, loginWithGoogle } from "@/services/authService";
 import { Ionicons } from "@expo/vector-icons";
+import * as Google from "expo-auth-session/providers/google";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import * as WebBrowser from "expo-web-browser";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -12,11 +14,47 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Configure Google Sign In
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      handleGoogleSignIn(id_token);
+    }
+  }, [response]);
+
+  const handleGoogleSignIn = async (idToken: string) => {
+    setGoogleLoading(true);
+    try {
+      await loginWithGoogle(idToken);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Logged in with Google successfully!",
+      });
+      router.replace("/(tabs)");
+    } catch (error: any) {
+      Toast.show({
+        type: "error",
+        text1: "Google Sign In Failed",
+        text2: error.message,
+      });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -49,7 +87,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
+    <ScrollView className="flex-1 bg-white pt-5">
       <View className="px-6 pt-12">
         {/* Back Button */}
         <TouchableOpacity onPress={() => router.back()} className="mb-8">
@@ -62,7 +100,7 @@ export default function LoginScreen() {
             Welcome Back
           </Text>
           <Text className="text-gray-500 text-base">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+            Please sign in to continue to your account.
           </Text>
         </View>
 
@@ -135,9 +173,20 @@ export default function LoginScreen() {
 
         {/* Social Login Buttons */}
         <View className="flex-row gap-3 mb-8">
-          <TouchableOpacity className="flex-1 flex-row items-center justify-center border border-gray-200 rounded-xl py-3">
-            <Ionicons name="logo-google" size={20} color="#DB4437" />
-            <Text className="ml-2 font-medium text-gray-700">Google</Text>
+          <TouchableOpacity
+            className="flex-1 flex-row items-center justify-center border border-gray-200 rounded-xl py-3"
+            onPress={() => promptAsync()}
+            disabled={!request || googleLoading}
+            style={{ opacity: !request || googleLoading ? 0.5 : 1 }}
+          >
+            {googleLoading ? (
+              <ActivityIndicator size="small" color="#DB4437" />
+            ) : (
+              <>
+                <Ionicons name="logo-google" size={20} color="#DB4437" />
+                <Text className="ml-2 font-medium text-gray-700">Google</Text>
+              </>
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-1 flex-row items-center justify-center border border-gray-200 rounded-xl py-3">

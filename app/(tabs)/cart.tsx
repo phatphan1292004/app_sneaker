@@ -23,7 +23,7 @@ export default function CartScreen() {
 
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-gray-100 pt-12">
       {/* Header */}
       <View
         className="px-5 py-4 border-b border-gray-200 flex-row items-center"
@@ -83,7 +83,7 @@ export default function CartScreen() {
                 onChangeText={setCouponCode}
                 placeholder="Enter coupon code"
                 placeholderTextColor="#9CA3AF"
-                className="flex-1 px-4 py-3 text-gray-900"
+                className="flex-1 px-4 py-5 text-gray-900"
               />
               <TouchableOpacity className="px-5 py-3">
                 <Text style={{ color: "#496c60" }} className="font-semibold">Apply</Text>

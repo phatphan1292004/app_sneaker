@@ -165,7 +165,7 @@ export default function EditProfileScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white pt-12">
       {/* Header – GIỮ NGUYÊN */}
       <View
         className="px-5 py-4 border-b border-gray-200 flex-row items-center"
