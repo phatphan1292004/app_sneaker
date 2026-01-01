@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Text,
   TextInput,
   TouchableOpacity,
@@ -109,9 +110,21 @@ const ProductReview: React.FC<ProductReviewProps> = ({
       {reviews.filter((review) => !review.parent_id).map((review) => (
         <View key={review._id} className="bg-gray-50 rounded-xl p-4 mb-3">
           <View className="flex-row justify-between mb-2">
-            <Text className="font-semibold">
-              {review.user_id || "Người dùng"}
-            </Text>
+            <View className="flex-row items-center flex-1">
+              {review.user?.avatar ? (
+                <Image
+                  source={{ uri: review.user.avatar }}
+                  className="w-8 h-8 rounded-full mr-2"
+                />
+              ) : (
+                <View className="w-8 h-8 rounded-full bg-gray-300 mr-2 items-center justify-center">
+                  <Ionicons name="person" size={16} color="#666" />
+                </View>
+              )}
+              <Text className="font-semibold">
+                {review.user?.username || "Người dùng"}
+              </Text>
+            </View>
             <View className="flex-row">
               {[...Array(5)].map((_, i) => (
                 <Ionicons
@@ -182,10 +195,22 @@ const ProductReview: React.FC<ProductReviewProps> = ({
                 .filter((r) => r.parent_id === review._id)
                 .map((reply) => (
                   <View key={reply._id} className="mb-2">
-                    <Text className="font-semibold text-xs">
-                      {reply.user_id || "Người dùng"}
-                    </Text>
-                    <Text className="text-xs text-gray-600">{reply.content}</Text>
+                    <View className="flex-row items-center mb-1">
+                      {reply.user?.avatar ? (
+                        <Image
+                          source={{ uri: reply.user.avatar }}
+                          className="w-6 h-6 rounded-full mr-2"
+                        />
+                      ) : (
+                        <View className="w-6 h-6 rounded-full bg-gray-300 mr-2 items-center justify-center">
+                          <Ionicons name="person" size={12} color="#666" />
+                        </View>
+                      )}
+                      <Text className="font-semibold text-xs">
+                        {reply.user?.username || "Người dùng"}
+                      </Text>
+                    </View>
+                    <Text className="text-xs text-gray-600 ml-8">{reply.content}</Text>
                   </View>
                 ))}
             </View>

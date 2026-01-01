@@ -8,7 +8,10 @@ export interface Review {
   rating: number;
   parent_id?: string;
   createdAt?: string;
-  // Có thể có thêm các trường khác như userName, avatar...
+  user?: {
+    username?: string;
+    avatar?: string;
+  };
 }
 
 export const reviewService = {
