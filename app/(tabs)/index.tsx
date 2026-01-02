@@ -70,25 +70,26 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-gray-100 pt-14">
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-5 pt-3 pb-2 flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Image
-              source={{
-                uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
-              }}
-              className="w-14 h-14 rounded-lg"
-            />
-            <View className="ml-3">
-              <Text className="text-sm text-gray-500">Welcome, {user ? user.displayName : "Guest"} 👋</Text>
-            </View>
+      {/* Header */}
+      <View className="px-5 pt-3 pb-2 flex-row items-center justify-between">
+        <View className="flex-row items-center">
+          <Image
+            source={{
+              uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+            }}
+            className="w-14 h-14 rounded-lg"
+          />
+          <View className="ml-3">
+            <Text className="text-sm text-gray-500">
+              Welcome, {user ? user.displayName : "Guest"} 👋
+            </Text>
           </View>
-          <TouchableOpacity>
-            <Ionicons name="notifications-outline" size={24} color="#000" />
-          </TouchableOpacity>
         </View>
-
+        <TouchableOpacity>
+          <Ionicons name="notifications-outline" size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Banner */}
         <HomeBanner />
 
