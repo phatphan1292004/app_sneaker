@@ -49,14 +49,14 @@ const ProductReview: React.FC<ProductReviewProps> = ({
             : "0.0"}
         </Text>
         <Text className="text-sm text-gray-500 ml-1">
-          ({reviews.length} đánh giá)
+          ({reviews.length} reviews)
         </Text>
       </View>
 
       {/* Form nhập review */}
       {onSubmitReview && (
         <View className="bg-gray-100 rounded-xl p-4 mb-4">
-          <Text className="font-semibold mb-2">Đánh giá sản phẩm</Text>
+          <Text className="font-semibold mb-2">Review</Text>
 
           <View className="flex-row mb-2">
             {[1, 2, 3, 4, 5].map((star) => (
