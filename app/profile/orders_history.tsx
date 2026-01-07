@@ -1,4 +1,3 @@
-import OrderDetailModal from "@/components/order/OrderDetailModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiOrder, orderService } from "@/services/orderService";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,8 +19,6 @@ export default function OrdersHistoryScreen() {
   const [orders, setOrders] = useState<ApiOrder[]>([]);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<OrderTab>("paid");
-  const [selectedOrder, setSelectedOrder] = useState<ApiOrder | null>(null);
-  const [showModal, setShowModal] = useState(false);
 
   const { user } = useAuth();
   const userId = user?.uid || "";
@@ -53,12 +50,8 @@ export default function OrdersHistoryScreen() {
       });
   }, [orders, tab, search]);
 
-  const openOrderDetail = async (orderId: string) => {
-    const res = await orderService.getOrderById(orderId);
-    if (res.success) {
-      setSelectedOrder(res.data);
-      setShowModal(true);
-    }
+  const openOrderDetail = (orderId: string) => {
+    router.push(`/order/${orderId}` as any);
   };
 
   const TabButton = ({ label, value }: { label: string; value: OrderTab }) => {
@@ -130,7 +123,7 @@ export default function OrdersHistoryScreen() {
                   </Text>
                 </View>
                 <TouchableOpacity onPress={() => openOrderDetail(order._id)}>
-                  <Text className="font-semibold" style={{ color: "#496c60" }}>Order Details</Text>
+                  <Text className="font-semibold" style={{ color: "#496c60" }}>Details</Text>
                 </TouchableOpacity>
               </View>
 
@@ -157,13 +150,6 @@ export default function OrdersHistoryScreen() {
           );
         })}
       </ScrollView>
-
-      <OrderDetailModal
-        visible={showModal}
-        order={selectedOrder}
-        onClose={() => setShowModal(false)}
-        onCancelled={fetchOrders}
-      />
     </View>
   );
 }

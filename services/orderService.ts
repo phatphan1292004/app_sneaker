@@ -138,4 +138,18 @@ export const orderService = {
     const { data } = await api.post(`/order/${orderId}/reorder`);
     return data;
   },
+
+  updateShippingAddress: async (
+    orderId: string,
+    address: {
+      street: string;
+      province: string;
+      district: string;
+      ward: string;
+      country: string;
+    }
+  ) => {
+    const { data } = await api.put(`/order/${orderId}/shipping-address`, address);
+    return data;
+  },
 };

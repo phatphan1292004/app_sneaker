@@ -1,6 +1,7 @@
 import BrandFilter from "@/components/home/BrandFilter";
 import HomeBanner from "@/components/home/HomeBanner";
 import SearchSuggestions from "@/components/home/SearchSuggestions";
+import NotificationModal from "@/components/notification/NotificationModal";
 import ProductSection from "@/components/product/product_section";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBrands } from "@/hooks/useBrands";
@@ -29,6 +30,7 @@ export default function HomeScreen() {
   } = useProducts();
   const [searchText, setSearchText] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const { results: searchResults, loading: searchLoading } =
     useProductSearch(searchText);
   const loading = brandsLoading || productsLoading;
@@ -74,8 +76,12 @@ export default function HomeScreen() {
       <View className="px-5 pt-3 pb-2 flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Image
+            // source={{
+            //   uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+            // }}
+
             source={{
-              uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+              uri: "https://i.pinimg.com/736x/3f/c6/ba/3fc6bad36d735625e7bbb4a7e311ecd2.jpg",
             }}
             className="w-14 h-14 rounded-lg"
           />
@@ -85,10 +91,16 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setShowNotificationModal(true)}>
           <Ionicons name="notifications-outline" size={24} color="#000" />
         </TouchableOpacity>
       </View>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        visible={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+      />
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Banner */}
         <HomeBanner />

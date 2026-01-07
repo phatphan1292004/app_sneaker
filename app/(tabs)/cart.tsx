@@ -4,12 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
+  Image,
   ScrollView,
   StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function CartScreen() {
@@ -19,8 +20,6 @@ export default function CartScreen() {
   const subtotal = getTotalPrice();
   const shipping = 0; // Free shipping
   const total = subtotal + shipping;
-
-
 
   return (
     <View className="flex-1 bg-gray-100 pt-12">
@@ -43,8 +42,16 @@ export default function CartScreen() {
         <View className="w-10 h-10" />
       </View>
       {items.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Ionicons name="cart-outline" size={80} color="#D1D5DB" />
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Image
+            source={{
+              width:200, height:200,
+              uri: "https://i.pinimg.com/1200x/f7/b3/11/f7b3113394e96105685b79f80a374eb5.jpg",
+            }}
+            className="w-14 h-14 rounded-lg"
+          />
           <Text className="text-gray-400 text-lg mt-4">Your cart is empty</Text>
         </View>
       ) : (
@@ -86,7 +93,9 @@ export default function CartScreen() {
                 className="flex-1 px-4 py-5 text-gray-900"
               />
               <TouchableOpacity className="px-5 py-3">
-                <Text style={{ color: "#496c60" }} className="font-semibold">Apply</Text>
+                <Text style={{ color: "#496c60" }} className="font-semibold">
+                  Apply
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
