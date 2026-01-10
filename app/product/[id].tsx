@@ -387,7 +387,7 @@ export default function ProductDetailScreen() {
 
         {/* Product Info */}
         <View className="px-5 pt-10">
-          <Text className="text-sm text-gray-500 mb-2 font-semibold color-[#496c60]">
+          <Text className="text-sm mb-2 font-semibold" style={{ color: "#496c60" }}>
             {brandName}
           </Text>
           <Text className="text-2xl font-bold text-gray-900 mb-3">

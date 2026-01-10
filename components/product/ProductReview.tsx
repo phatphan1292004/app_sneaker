@@ -3,12 +3,12 @@ import { Review } from "@/services/reviewService";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Image,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Image,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 export interface ProductReviewProps {
@@ -36,20 +36,22 @@ const ProductReview: React.FC<ProductReviewProps> = ({
   const [replyError, setReplyError] = useState("");
   const user = useAuth().user;
 
+  // Chỉ lấy reviews chính (không phải replies) để tính trung bình
+  const mainReviews = reviews.filter((r) => !r.parent_id && r.rating > 0);
+  const averageRating = mainReviews.length > 0
+    ? (mainReviews.reduce((sum, r) => sum + r.rating, 0) / mainReviews.length).toFixed(1)
+    : "0.0";
+
   return (
     <View className="mb-8">
       {/* Header */}
       <View className="flex-row items-center mb-4">
         <Ionicons name="star" size={20} color="#FFC107" />
         <Text className="text-lg font-bold ml-1">
-          {reviews.length > 0
-            ? (
-                reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-              ).toFixed(1)
-            : "0.0"}
+          {averageRating}
         </Text>
         <Text className="text-sm text-gray-500 ml-1">
-          ({reviews.length} reviews)
+          ({mainReviews.length} reviews)
         </Text>
       </View>
 

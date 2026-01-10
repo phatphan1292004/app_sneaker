@@ -50,7 +50,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {
+        // Ignore error if splash screen is already hidden
+      });
     }
   }, [fontsLoaded]);
 

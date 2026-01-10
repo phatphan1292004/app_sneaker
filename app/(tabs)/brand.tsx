@@ -2,6 +2,7 @@ import FilterIcon from "@/components/icons/FilterIcon";
 import ProductCard from "@/components/product/product_card";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Modal,
   ScrollView,
@@ -18,9 +19,8 @@ export default function BrandScreen() {
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const brands = useBrands();
   const filters = useFilters();
-  const products = useProducts(filters);
+  const { products, loading } = useProducts(filters);
   const [isFilterModalVisible, setIsFilterModalVisible] = useState(false);
-  console.log("products in BrandScreen:", products);
 
   useEffect(() => {
     if (!slug) return;
@@ -205,22 +205,29 @@ export default function BrandScreen() {
 
         {/* PRODUCT LIST */}
         <View className="px-5 pb-6">
-          <View className="flex-row flex-wrap justify-between">
-            {products.map((product) => {
-              const brand = brands?.find((b) => b._id === product.brand_id);
-              return (
-                <ProductCard
-                  key={product._id}
-                  id={product._id}
-                  brand={brand?.name || ""}
-                  name={product.name}
-                  price={product.base_price}
-                  image={product.images[0]}
-                  discount={product.discount}
-                />
-              );
-            })}
-          </View>
+          {loading ? (
+            <View className="py-20 items-center justify-center">
+              <ActivityIndicator size="large" color="#496c60" />
+              <Text className="text-gray-500 mt-3">Loading products...</Text>
+            </View>
+          ) : (
+            <View className="flex-row flex-wrap justify-between">
+              {products.map((product) => {
+                const brand = brands?.find((b) => b._id === product.brand_id);
+                return (
+                  <ProductCard
+                    key={product._id}
+                    id={product._id}
+                    brand={brand?.name || ""}
+                    name={product.name}
+                    price={product.base_price}
+                    image={product.images[0]}
+                    discount={product.discount}
+                  />
+                );
+              })}
+            </View>
+          )}
         </View>
       </ScrollView>
 
