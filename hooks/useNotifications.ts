@@ -10,11 +10,20 @@ export function useNotifications() {
   const [loading, setLoading] = useState(true);
 
   const fetchNotifications = async () => {
-    if (!firebaseUid) return;
+    if (!firebaseUid) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const res = await notificationService.getAll(firebaseUid);
-    setNotifications(res.data?.data || []);
-    setLoading(false);
+    try {
+      const res = await notificationService.getAll(firebaseUid);
+      setNotifications(res.data?.data || []);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      setNotifications([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const markAsRead = async (id: string) => {

@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 
 export function useProducts(filters: any) {
   const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const params: any = {};
       if (filters.selectedBrand !== "ALL") params.brand = filters.selectedBrand;
       if (filters.selectedPrice !== "ALL") params.price = filters.selectedPrice;
@@ -17,6 +19,8 @@ export function useProducts(filters: any) {
       setProducts(res.data);
     } catch (error) {
       console.error("Failed to fetch products", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -30,5 +34,5 @@ export function useProducts(filters: any) {
     filters.selectedSort,
   ]);
 
-  return products;
+  return { products, loading };
 }
