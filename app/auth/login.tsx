@@ -69,12 +69,17 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await loginUser({ email, password });
+      const isAdmin = email.trim().toLowerCase() === "admin@gmail.com";
       Toast.show({
         type: "success",
         text1: "Success",
         text2: "Logged in successfully!",
       });
-      router.replace("/(tabs)");
+      if (isAdmin) {
+        router.replace("/(admin)" as any);
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (error: any) {
       Toast.show({
         type: "error",

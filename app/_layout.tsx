@@ -63,21 +63,30 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <CartProvider>
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
           <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false}} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(admin)" options={{ headerShown: false }} />
             <Stack.Screen name="product" options={{ headerShown: false }} />
-            <Stack.Screen name="auth" options={{headerShown: false}} />
+            <Stack.Screen name="auth" options={{ headerShown: false }} />
             <Stack.Screen name="checkout" options={{ headerShown: false }} />
-            <Stack.Screen name="search" options={{headerShown: false}} />
-            <Stack.Screen name="order" options={{headerShown: false}} />
-            <Stack.Screen name="profile/orders_history" options={{ headerShown: false }} />
-            <Stack.Screen name="profile/address" options={{ headerShown: false }} />
+            <Stack.Screen name="search" options={{ headerShown: false }} />
+            <Stack.Screen name="order" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="profile/orders_history"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="profile/address"
+              options={{ headerShown: false }}
+            />
           </Stack>
           <StatusBar style="auto" />
         </ThemeProvider>
       </CartProvider>
-      <Toast position="bottom"/>
+      <Toast position="bottom" />
     </AuthProvider>
   );
 }
