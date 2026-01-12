@@ -12,7 +12,7 @@ import {
   StatusBar,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { WebView } from "react-native-webview";
@@ -184,14 +184,17 @@ export default function CheckoutScreen() {
     const url = navState.url;
 
     // Kiểm tra xem URL hiện tại có chứa chuỗi return do VNPay gọi về không
-    if (url.includes("vnpay-return")) {
+    if (url && url.includes("vnpay-return")) {
       try {
+        setLoading(true);
+        
         // 1. Phân tích URL để lấy các tham số query VNPay gửi về
         const parsedUrl = new URL(url);
         const params = Object.fromEntries(parsedUrl.searchParams.entries());
 
+        console.log("VNPay return params:", params);
+
         // 2. Gọi API kiểm tra chữ ký thông qua instance 'api' của bạn
-        // Thay vì dùng fetch() thủ công, hãy dùng axios/api instance để đảm bảo header/base_url đúng
         const response = await api.get("/api/vnpay-return", { params });
         const data = response.data;
 
@@ -203,7 +206,7 @@ export default function CheckoutScreen() {
           });
           clearCart();
           setVnpayUrl(null);
-          router.push("/(tabs)");
+          setTimeout(() => router.push("/(tabs)"), 500);
         } else {
           Toast.show({
             type: "error",
@@ -220,6 +223,8 @@ export default function CheckoutScreen() {
           text2: "Không thể xác thực giao dịch",
         });
         setVnpayUrl(null);
+      } finally {
+        setLoading(false);
       }
     }
   };
