@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, Text, View } from "react-native";
+import Toast from "react-native-toast-message";
 
-import { useAdminStore } from "../../components/admin/AdminStore";
 import { t, useAdminTheme } from "../../components/admin/theme";
 import {
   CardPro,
@@ -13,67 +13,107 @@ import {
 } from "../../components/admin/ui-pro";
 import { SkeletonCard } from "../../components/admin/ux";
 
+import {
+  fetchAdminDashboard,
+  type DashboardDTO,
+} from "../../services/admin/adminDashboardApi";
+
+function getErrMessage(err: any, fallback: string) {
+  return err?.response?.data?.message || err?.message || fallback;
+}
+
 export default function AdminDashboard() {
-  const { state, actions } = useAdminStore();
   const { mode } = useAdminTheme();
 
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<DashboardDTO | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetchAdminDashboard({ days: 7 });
+      if (!res.success || !res.data) {
+        setData(null);
+        Toast.show({
+          type: "error",
+          text1: "Load failed",
+          text2: res.message || "Không tải được dashboard",
+        });
+        return;
+      }
+      setData(res.data);
+    } catch (err: any) {
+      setData(null);
+      Toast.show({
+        type: "error",
+        text1: "Load failed",
+        text2: getErrMessage(err, "Không tải được dashboard"),
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    actions.boot();
+    load();
   }, []);
 
-  const revenuePaid = useMemo(() => {
-    return state.orders
-      .filter(
-        (o) =>
-          o.status === "paid" ||
-          o.status === "delivered" ||
-          o.status === "shipping"
-      )
-      .reduce((sum, o) => sum + o.total_amount, 0);
-  }, [state.orders]);
+  const stats = useMemo(() => {
+    const s = data?.stats;
+    return [
+      { label: "Users", value: s?.users ?? 0, icon: "people-outline" as const },
+      {
+        label: "Brands",
+        value: s?.brands ?? 0,
+        icon: "pricetag-outline" as const,
+      },
+      {
+        label: "Products",
+        value: s?.products ?? 0,
+        icon: "cube-outline" as const,
+      },
+      {
+        label: "Orders",
+        value: s?.orders ?? 0,
+        icon: "receipt-outline" as const,
+      },
+    ];
+  }, [data]);
 
-  const topSelling = useMemo(() => {
-    return [...state.products].sort((a, b) => b.sold - a.sold).slice(0, 5);
-  }, [state.products]);
+  const chart = useMemo(() => data?.revenueLastDays ?? [], [data]);
 
-  const recentOrders = useMemo(() => {
-    return [...state.orders]
-      .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-      .slice(0, 6);
-  }, [state.orders]);
-
-  const stats = [
-    {
-      label: "Users",
-      value: state.users.length,
-      icon: "people-outline" as const,
-    },
-    {
-      label: "Brands",
-      value: state.brands.length,
-      icon: "pricetag-outline" as const,
-    },
-    {
-      label: "Products",
-      value: state.products.length,
-      icon: "cube-outline" as const,
-    },
-    {
-      label: "Orders",
-      value: state.orders.length,
-      icon: "receipt-outline" as const,
-    },
-  ];
-
-  const chart = [2, 4, 3, 6, 5, 2, 7]; // mock columns
+  const topSelling = useMemo(() => data?.topSelling ?? [], [data]);
+  const recentOrders = useMemo(() => data?.recentOrders ?? [], [data]);
 
   return (
     <ScreenPro title="Admin" subtitle="Dashboard">
-      {!actions.isBooted ? (
+      {loading ? (
         <View className="pt-4">
           <SkeletonCard />
           <SkeletonCard />
           <SkeletonCard />
+        </View>
+      ) : !data ? (
+        <View className="px-5 pt-4">
+          <CardPro>
+            <Text
+              className={
+                t(mode, "text-gray-900", "text-white") +
+                " font-extrabold text-lg"
+              }
+            >
+              Không có dữ liệu dashboard
+            </Text>
+            <Text
+              className={t(mode, "text-gray-500", "text-gray-400") + " mt-2"}
+            >
+              Kiểm tra API GET /admin/dashboard
+            </Text>
+
+            <View className="mt-4">
+              <MiniBtn label="Reload" icon="refresh" onPress={load} />
+            </View>
+          </CardPro>
         </View>
       ) : (
         <FlatList
@@ -159,6 +199,9 @@ export default function AdminDashboard() {
                       </Text>
                     </View>
                   }
+                  right={
+                    <MiniBtn label="Reload" icon="refresh" onPress={load} />
+                  }
                 />
                 <Text
                   className={
@@ -166,14 +209,14 @@ export default function AdminDashboard() {
                     " text-3xl font-extrabold mt-3"
                   }
                 >
-                  {revenuePaid.toLocaleString("vi-VN")} ₫
+                  {Number(data.revenuePaid || 0).toLocaleString("vi-VN")} ₫
                 </Text>
                 <Text
                   className={
                     t(mode, "text-gray-500", "text-gray-400") + " mt-1"
                   }
                 >
-                  Doanh thu đã thanh toán
+                  Tổng doanh thu (paid/shipped/delivered)
                 </Text>
               </CardPro>
 
@@ -187,7 +230,7 @@ export default function AdminDashboard() {
                         " font-extrabold text-lg"
                       }
                     >
-                      Revenue last 7 days
+                      Revenue last {chart.length || 7} days
                     </Text>
                   }
                   right={
@@ -199,27 +242,34 @@ export default function AdminDashboard() {
                   }
                 />
                 <View className="flex-row items-end mt-4">
-                  {chart.map((v, idx) => (
-                    <View key={idx} className="flex-1 items-center">
-                      <View
-                        className="w-3 rounded-full bg-[#496c60]"
-                        style={{ height: 10 + v * 10, opacity: 0.9 }}
-                      />
-                      <View
-                        className={
-                          t(mode, "bg-gray-200", "bg-gray-900") +
-                          " h-1 w-4 rounded-full mt-2"
-                        }
-                      />
-                    </View>
-                  ))}
+                  {chart.map((c, idx) => {
+                    // scale height cho đẹp (không cần chính xác tuyệt đối)
+                    const h = Math.max(
+                      8,
+                      Math.min(90, Math.round((c.total || 0) / 200000))
+                    );
+                    return (
+                      <View key={c.date + idx} className="flex-1 items-center">
+                        <View
+                          className="w-3 rounded-full bg-[#496c60]"
+                          style={{ height: 10 + h, opacity: 0.9 }}
+                        />
+                        <View
+                          className={
+                            t(mode, "bg-gray-200", "bg-gray-900") +
+                            " h-1 w-4 rounded-full mt-2"
+                          }
+                        />
+                      </View>
+                    );
+                  })}
                 </View>
                 <Text
                   className={
                     t(mode, "text-gray-500", "text-gray-400") + " mt-3"
                   }
                 >
-                  Mỗi cột = doanh thu/100.000
+                  Chart lấy từ server: /admin/dashboard
                 </Text>
               </CardPro>
 
@@ -275,7 +325,7 @@ export default function AdminDashboard() {
                               }
                             >
                               Sold: {p.sold} • Price:{" "}
-                              {p.base_price.toLocaleString("vi-VN")} ₫
+                              {Number(p.base_price).toLocaleString("vi-VN")} ₫
                             </Text>
                           </View>
                         }
@@ -335,7 +385,8 @@ export default function AdminDashboard() {
                               }
                               numberOfLines={1}
                             >
-                              #{o._id.slice(-6)} • {o.status.toUpperCase()}
+                              #{o._id.slice(-6)} •{" "}
+                              {String(o.status).toUpperCase()}
                             </Text>
                             <Text
                               className={
@@ -343,8 +394,8 @@ export default function AdminDashboard() {
                                 " mt-1"
                               }
                             >
-                              {o.total_amount.toLocaleString("vi-VN")} ₫ •
-                              Items: {o.items.length}
+                              {Number(o.total_amount).toLocaleString("vi-VN")} ₫
+                              • Items: {o.items?.length ?? 0}
                             </Text>
                           </View>
                         }

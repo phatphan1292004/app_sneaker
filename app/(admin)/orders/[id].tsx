@@ -1,8 +1,15 @@
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useMemo, useState } from "react";
-import { FlatList, Image, Pressable, Text, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
+import Toast from "react-native-toast-message";
 
-import { useAdminStore } from "../../../components/admin/AdminStore";
 import { t, useAdminTheme } from "../../../components/admin/theme";
 import {
   CardPro,
@@ -13,35 +20,133 @@ import {
   ScreenPro,
 } from "../../../components/admin/ui-pro";
 import { EmptyState } from "../../../components/admin/ux";
-import type { Order } from "../../../types/admin";
+import {
+  fetchAdminOrderById,
+  OrderStatus,
+  updateAdminOrderStatus,
+  type OrderDTO,
+} from "../../../services/admin/adminOrdersApi";
 
-const STATUSES: Order["status"][] = [
+const STATUSES: OrderStatus[] = [
   "pending",
   "paid",
-  "shipping",
+  "processing",
+  "shipped",
   "delivered",
   "cancelled",
 ];
 
-export default function OrderDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { state, actions } = useAdminStore();
-  const { mode } = useAdminTheme();
+function getErrMessage(err: any, fallback: string) {
+  return err?.response?.data?.message || err?.message || fallback;
+}
 
-  const order = state.orders.find((o) => o._id === id);
+export default function OrderDetail() {
+  const { mode } = useAdminTheme();
+  const params = useLocalSearchParams();
+  const idRaw: any = (params as any)?.id;
+  const id = String(Array.isArray(idRaw) ? idRaw[0] : idRaw || "").trim();
+
+  const [order, setOrder] = useState<OrderDTO | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const totalItems = useMemo(
-    () => order?.items.reduce((s, it) => s + it.qty, 0) ?? 0,
+    () =>
+      order?.items?.reduce((s, it) => s + (Number(it.quantity) || 0), 0) ?? 0,
     [order]
   );
 
+  const load = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const res = await fetchAdminOrderById(id);
+      if (!res.success || !res.data) {
+        setOrder(null);
+        return;
+      }
+      setOrder(res.data);
+    } catch (err: any) {
+      Toast.show({
+        type: "error",
+        text1: "Load failed",
+        text2: getErrMessage(err, "Không tải được đơn hàng"),
+      });
+      setOrder(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, [id]);
+
+  const shipText = useMemo(() => {
+    const s = order?.shipping_address;
+    if (!s) return "-";
+    return `${s.street}, ${s.ward}, ${s.district}, ${s.province}, ${s.country}`;
+  }, [order]);
+
+  const changeStatus = async (status: OrderDTO["status"]) => {
+    if (!order) return;
+    setSaving(true);
+    try {
+      const res = await updateAdminOrderStatus(order._id, status);
+      if (!res.success || !res.data) {
+        Toast.show({
+          type: "error",
+          text1: "Update failed",
+          text2: res.message || "Không cập nhật được status",
+        });
+        return;
+      }
+      setOrder(res.data);
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: "Đã cập nhật status",
+      });
+      setOpen(false);
+    } catch (err: any) {
+      Toast.show({
+        type: "error",
+        text1: "Update failed",
+        text2: getErrMessage(err, "Không cập nhật được status"),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading && !order) {
+    return (
+      <ScreenPro title="Order detail" subtitle="Loading...">
+        <View className="py-8 items-center">
+          <ActivityIndicator />
+        </View>
+      </ScreenPro>
+    );
+  }
+
   if (!order) {
     return (
-      <ScreenPro title="Order detail" subtitle="Not found">
+      <ScreenPro
+        title="Order detail"
+        subtitle="Not found"
+        right={
+          <MiniBtn
+            label="Back"
+            icon="arrow-back"
+            onPress={() => router.replace("/(admin)/orders")}
+          />
+        }
+      >
         <EmptyState
           title="Không tìm thấy đơn hàng"
-          subtitle="Quay lại danh sách."
+          subtitle="Do màn này đang fetch theo id. Kiểm tra API /admin/orders/:id."
         />
       </ScreenPro>
     );
@@ -50,15 +155,19 @@ export default function OrderDetail() {
   return (
     <ScreenPro
       title="Order detail"
-      subtitle={`#${order._id.slice(-6)} • ${order.status.toUpperCase()}`}
+      subtitle={`#${order._id.slice(-6)} • ${String(order.status).toUpperCase()}`}
       right={
-        <MiniBtn label="Back" icon="arrow-back" onPress={() => router.back()} />
+        <MiniBtn
+          label="Back"
+          icon="arrow-back"
+          onPress={() => router.replace("/(admin)/orders")}
+        />
       }
     >
       <FlatList
         data={[
           { key: "header" },
-          ...order.items.map(
+          ...(order.items || []).map(
             (x, idx) => ({ key: String(idx), item: x }) as any
           ),
         ]}
@@ -78,7 +187,8 @@ export default function OrderDetail() {
                             " font-extrabold text-lg"
                           }
                         >
-                          Tổng: {order.total_amount.toLocaleString("vi-VN")} ₫
+                          Tổng:{" "}
+                          {Number(order.total_amount).toLocaleString("vi-VN")} ₫
                         </Text>
                         <Text
                           className={
@@ -86,7 +196,7 @@ export default function OrderDetail() {
                           }
                         >
                           Items: {totalItems} • Payment:{" "}
-                          {order.payment_method.toUpperCase()}
+                          {String(order.payment_method || "").toUpperCase()}
                         </Text>
                         <Text
                           className={
@@ -94,7 +204,7 @@ export default function OrderDetail() {
                           }
                           numberOfLines={2}
                         >
-                          Ship: {order.shipping_address?.address || "-"}
+                          Ship: {shipText}
                         </Text>
                       </View>
                     }
@@ -122,58 +232,31 @@ export default function OrderDetail() {
                       t(mode, "text-gray-500", "text-gray-400") + " mt-1"
                     }
                   >
-                    Xem danh sách sản phẩm trong đơn
+                    Danh sách sản phẩm trong đơn
                   </Text>
                 </CardPro>
               </View>
             );
           }
 
-          const it = item.item;
+          const it = item.item as OrderDTO["items"][number];
           return (
             <CardPro className="mb-3">
-              <View className="flex-row">
-                <View
-                  className={
-                    t(mode, "bg-gray-100", "bg-gray-900") +
-                    " w-16 h-16 rounded-2xl overflow-hidden mr-3"
-                  }
-                >
-                  {!!it.image && (
-                    <Image
-                      source={{ uri: it.image }}
-                      style={{ width: "100%", height: "100%" }}
-                      resizeMode="cover"
-                    />
-                  )}
-                </View>
-                <View className="flex-1">
-                  <Text
-                    className={
-                      t(mode, "text-gray-900", "text-white") + " font-extrabold"
-                    }
-                    numberOfLines={1}
-                  >
-                    {it.name}
-                  </Text>
-                  <Text
-                    className={
-                      t(mode, "text-gray-500", "text-gray-400") + " mt-1"
-                    }
-                  >
-                    Qty: {it.qty} • {it.price.toLocaleString("vi-VN")} ₫
-                  </Text>
-                  <Text
-                    className={
-                      t(mode, "text-gray-500", "text-gray-400") + " mt-1"
-                    }
-                    numberOfLines={1}
-                  >
-                    product: {it.product_id.slice(-6)} • variant:{" "}
-                    {it.variant_id.slice(-6)}
-                  </Text>
-                </View>
-              </View>
+              <Text
+                className={
+                  t(mode, "text-gray-900", "text-white") + " font-extrabold"
+                }
+                numberOfLines={1}
+              >
+                product: {String(it.product_id).slice(-6)} • variant:{" "}
+                {String(it.variant_id).slice(-6)}
+              </Text>
+              <Text
+                className={t(mode, "text-gray-500", "text-gray-400") + " mt-1"}
+              >
+                Brand: {it.brand || "-"} • Qty: {it.quantity} •{" "}
+                {Number(it.price).toLocaleString("vi-VN")} ₫
+              </Text>
             </CardPro>
           );
         }}
@@ -183,14 +266,22 @@ export default function OrderDetail() {
         visible={open}
         title="Update status"
         onClose={() => setOpen(false)}
-        footer={<PrimaryBtn label="Đóng" onPress={() => setOpen(false)} />}
+        footer={
+          <PrimaryBtn
+            label={saving ? "Đang lưu..." : "Đóng"}
+            onPress={() => setOpen(false)}
+          />
+        }
       >
         {STATUSES.map((s) => (
           <Pressable
             key={s}
+            disabled={saving}
             onPress={() => {
-              actions.updateOrder(order._id, { status: s });
-              setOpen(false);
+              Alert.alert("Đổi status?", `Chuyển sang ${s.toUpperCase()}?`, [
+                { text: "Huỷ", style: "cancel" },
+                { text: "OK", onPress: () => changeStatus(s) },
+              ]);
             }}
             className={
               t(mode, "border-gray-200", "border-gray-900") +

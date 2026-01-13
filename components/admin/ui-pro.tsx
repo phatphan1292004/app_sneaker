@@ -333,6 +333,9 @@ export function Field({
   placeholder,
   keyboardType,
   multiline,
+  error,
+  disabled,
+  helper,
 }: {
   label: string;
   value: string;
@@ -340,8 +343,23 @@ export function Field({
   placeholder?: string;
   keyboardType?: any;
   multiline?: boolean;
+  error?: string;
+  helper?: string;
+  disabled?: boolean;
 }) {
   const { mode } = useAdminTheme();
+
+  const borderClass = error
+    ? t(mode, "border-red-300", "border-red-700")
+    : t(mode, "border-gray-200", "border-gray-900");
+
+  const bgClass = disabled
+    ? t(mode, "bg-gray-100", "bg-gray-900")
+    : t(mode, "bg-gray-50", "bg-gray-950");
+
+  const textClass = t(mode, "text-gray-900", "text-white");
+  const placeholderColor = mode === "dark" ? "#6b7280" : "#9ca3af";
+
   return (
     <View className="mb-3">
       <Text
@@ -351,21 +369,33 @@ export function Field({
       >
         {label}
       </Text>
+
       <TextInput
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={mode === "dark" ? "#6b7280" : "#9ca3af"}
+        placeholderTextColor={placeholderColor}
         keyboardType={keyboardType}
         multiline={multiline}
+        editable={!disabled}
         className={
-          t(
-            mode,
-            "bg-gray-50 border border-gray-200 text-gray-900",
-            "bg-gray-950 border border-gray-900 text-white"
-          ) + " rounded-2xl px-4 py-3"
+          `${bgClass} ${borderClass} ${textClass} ` +
+          "border rounded-2xl px-4 py-3"
         }
+        style={{ opacity: disabled ? 0.75 : 1 }}
       />
+
+      {!!helper && !error && (
+        <Text className={t(mode, "text-gray-500", "text-gray-400") + " mt-1"}>
+          {helper}
+        </Text>
+      )}
+
+      {!!error && (
+        <Text className={t(mode, "text-red-600", "text-red-300") + " mt-1"}>
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

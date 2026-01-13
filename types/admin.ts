@@ -1,10 +1,16 @@
 export type ID = string;
 
 export type User = {
-  _id: ID;
+  _id: string;
   firebaseUid: string;
   username: string;
   email: string;
+
+  avatar?: string;
+  phoneNumber?: string;
+  birthDate?: string;
+  gender?: string;
+
   createdAt: string;
   updatedAt: string;
 };
@@ -95,4 +101,10 @@ export type Voucher = {
   status: VoucherStatus;
   createdAt: string;
   updatedAt: string;
+};
+export type AdminOneRes<T> = {
+  success: boolean;
+  data?: T;
+  message?: string;
+  field?: "name" | "slug" | "logo" | "description";
 };

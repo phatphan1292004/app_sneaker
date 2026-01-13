@@ -4,6 +4,7 @@ import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AdminStoreProvider } from "../../components/admin/AdminStore";
 
+import Toast from "react-native-toast-message";
 import {
   AdminThemeProvider,
   useAdminTheme,
@@ -14,7 +15,6 @@ function AdminDrawer() {
   const bg = mode === "dark" ? "#000" : "#fff";
   const inactive = mode === "dark" ? "#9ca3af" : "#6b7280";
   const active = "#496c60";
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
       <Drawer
@@ -100,6 +100,7 @@ export default function AdminLayout() {
     <AdminThemeProvider>
       <AdminStoreProvider>
         <AdminDrawer />
+        <Toast position="bottom" />
       </AdminStoreProvider>
     </AdminThemeProvider>
   );
