@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "expo-router";
+import { router, useNavigation } from "expo-router";
 import React from "react";
 import {
   Modal,
@@ -10,6 +10,8 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
+import { auth } from "../../config/firebase";
 import { t, useAdminTheme } from "./theme";
 
 export function ScreenPro({
@@ -43,6 +45,23 @@ export function TopBar({
 }) {
   const { mode, toggle } = useAdminTheme();
   const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      Toast.show({
+        type: "success",
+        text1: "Logout successful",
+      });
+      router.replace("/auth/login");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Logout error",
+        text2: String(error),
+      });
+    }
+  };
 
   return (
     <View
@@ -110,6 +129,16 @@ export function TopBar({
               size={18}
               color={mode === "dark" ? "#fff" : "#111827"}
             />
+          </Pressable>
+          <Pressable
+            onPress={handleLogout}
+            className={t(
+              mode,
+              "w-11 h-11 rounded-2xl bg-red-50 items-center justify-center",
+              "w-11 h-11 rounded-2xl bg-red-950 items-center justify-center"
+            )}
+          >
+            <Ionicons name="log-out-outline" size={18} color="#ef4444" />
           </Pressable>
         </View>
       </View>

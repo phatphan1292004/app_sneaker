@@ -95,7 +95,7 @@ export default function LoginScreen() {
     <ScrollView className="flex-1 bg-white pt-5">
       <View className="px-6 pt-12">
         {/* Back Button */}
-        <TouchableOpacity onPress={() => router.back()} className="mb-8">
+        <TouchableOpacity onPress={() => router.replace("/(tabs)")} className="mb-8">
           <Ionicons name="chevron-back" size={24} color="#000" />
         </TouchableOpacity>
 
