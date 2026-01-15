@@ -27,6 +27,7 @@ export default function AdminDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardDTO | null>(null);
+  console.log("data", data);
 
   const load = async () => {
     setLoading(true);
