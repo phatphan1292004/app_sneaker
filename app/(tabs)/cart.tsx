@@ -1,9 +1,11 @@
 import CartItem from "@/components/order/CartItem";
 import { useCart } from "@/contexts/CartContext";
+import { applyVoucher } from "@/services/vouchersApi"; // <-- chỉnh path đúng file applyVoucher bạn viết
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StatusBar,
@@ -12,14 +14,109 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Toast from "react-native-toast-message";
+
+function money(v?: number) {
+  if (v == null) return "—";
+  return new Intl.NumberFormat("vi-VN").format(v) + " đ";
+}
+
+function getErrMessage(err: any, fallback: string) {
+  return err?.response?.data?.message || err?.message || fallback;
+}
 
 export default function CartScreen() {
-  const { items, updateQuantity, removeItem, getTotalPrice } = useCart();
-  const [couponCode, setCouponCode] = useState("");
+  const {
+    items,
+    updateQuantity,
+    removeItem,
+    getSubTotal,
+    getDiscount,
+    getTotalPrice,
+    voucher,
+    setVoucher,
+    clearVoucher,
+  } = useCart();
 
-  const subtotal = getTotalPrice();
-  const shipping = 0; // Free shipping
-  const total = subtotal + shipping;
+  const [couponCode, setCouponCode] = useState("");
+  const [applying, setApplying] = useState(false);
+
+  const subtotal = getSubTotal();
+  const discount = getDiscount();
+  const shipping = 0;
+  const total = getTotalPrice() + shipping;
+
+  // Khi subtotal đổi -> clear voucher để tránh sai discount
+  useEffect(() => {
+    if (voucher) {
+      clearVoucher();
+      setCouponCode("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal]);
+
+  const onApply = async () => {
+    const code = couponCode.trim().toUpperCase();
+
+    if (!code) {
+      Toast.show({
+        type: "error",
+        text1: "Thiếu mã",
+        text2: "Vui lòng nhập voucher trước.",
+      });
+      return;
+    }
+
+    if (subtotal <= 0) {
+      Toast.show({
+        type: "error",
+        text1: "Giỏ hàng trống",
+        text2: "Không thể áp dụng voucher.",
+      });
+      return;
+    }
+
+    setApplying(true);
+    try {
+      const r = await applyVoucher(code, subtotal);
+
+      if (!r.success || !r.data) {
+        Toast.show({
+          type: "error",
+          text1: "Apply failed",
+          text2: r.message || "Voucher không hợp lệ",
+        });
+        return;
+      }
+
+      // Lưu vào context (và storage)
+      setVoucher({ code: r.data.code, discount: r.data.discount });
+
+      Toast.show({
+        type: "success",
+        text1: "Success",
+        text2: `Đã áp dụng ${r.data.code} • Giảm ${money(r.data.discount)}`,
+      });
+    } catch (err: any) {
+      Toast.show({
+        type: "error",
+        text1: "Apply failed",
+        text2: getErrMessage(err, "Không áp dụng được voucher"),
+      });
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  const onRemoveVoucher = () => {
+    clearVoucher();
+    setCouponCode("");
+    Toast.show({
+      type: "success",
+      text1: "Removed",
+      text2: "Đã gỡ voucher.",
+    });
+  };
 
   return (
     <View className="flex-1 bg-gray-100 pt-12">
@@ -41,13 +138,15 @@ export default function CartScreen() {
 
         <View className="w-10 h-10" />
       </View>
+
       {items.length === 0 ? (
         <View
           style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
           <Image
             source={{
-              width:200, height:200,
+              width: 200,
+              height: 200,
               uri: "https://i.pinimg.com/1200x/f7/b3/11/f7b3113394e96105685b79f80a374eb5.jpg",
             }}
             className="w-14 h-14 rounded-lg"
@@ -90,14 +189,46 @@ export default function CartScreen() {
                 onChangeText={setCouponCode}
                 placeholder="Enter coupon code"
                 placeholderTextColor="#9CA3AF"
+                autoCapitalize="characters"
                 className="flex-1 px-4 py-5 text-gray-900"
               />
-              <TouchableOpacity className="px-5 py-3">
-                <Text style={{ color: "#496c60" }} className="font-semibold">
-                  Apply
-                </Text>
-              </TouchableOpacity>
+
+              {voucher ? (
+                <TouchableOpacity
+                  className="px-5 py-3"
+                  onPress={onRemoveVoucher}
+                >
+                  <Text style={{ color: "#DC2626" }} className="font-semibold">
+                    Remove
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  className="px-5 py-3"
+                  onPress={onApply}
+                  disabled={applying}
+                >
+                  {applying ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <Text
+                      style={{ color: "#496c60" }}
+                      className="font-semibold"
+                    >
+                      Apply
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
+
+            {voucher ? (
+              <Text className="text-xs text-gray-500 mt-2">
+                Applied: <Text className="font-bold">{voucher.code}</Text> •
+                giảm{" "}
+                <Text className="font-bold">{money(voucher.discount)}</Text>
+              </Text>
+            ) : null}
           </View>
 
           {/* Order Summary */}
@@ -109,21 +240,30 @@ export default function CartScreen() {
             <View className="flex-row justify-between mb-2">
               <Text className="text-gray-600">Sub Total</Text>
               <Text className="text-gray-900 font-semibold">
-                {subtotal.toLocaleString()} đ
+                {money(subtotal)}
+              </Text>
+            </View>
+
+            {/* Discount */}
+            <View className="flex-row justify-between mb-2">
+              <Text className="text-gray-600">Discount</Text>
+              <Text className="text-gray-900 font-semibold">
+                -{money(discount)}
+                {voucher?.code ? ` (${voucher.code})` : ""}
               </Text>
             </View>
 
             <View className="flex-row justify-between mb-3">
               <Text className="text-gray-600">Delivery fee</Text>
               <Text className="text-gray-900 font-semibold">
-                {shipping.toLocaleString()} đ
+                {money(shipping)}
               </Text>
             </View>
 
             <View className="flex-row justify-between mb-4">
               <Text className="font-bold text-gray-900 text-lg">Total</Text>
               <Text className="font-bold text-gray-900 text-xl">
-                {total.toLocaleString()} đ
+                {money(total)}
               </Text>
             </View>
 

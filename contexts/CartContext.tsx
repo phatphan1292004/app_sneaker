@@ -4,6 +4,7 @@ import React, {
   ReactNode,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { Platform } from "react-native";
@@ -20,14 +21,32 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface AppliedVoucher {
+  code: string;
+  discount: number;
+}
+
 interface CartContextType {
   items: CartItem[];
+
+  // voucher
+  voucher: AppliedVoucher | null;
+  setVoucher: (v: AppliedVoucher | null) => void;
+  clearVoucher: () => void;
+
+  // cart actions
   addItem: (item: Omit<CartItem, "quantity">) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
+
+  // totals
   getTotalItems: () => number;
+  getSubTotal: () => number;
+  getDiscount: () => number;
   getTotalPrice: () => number;
+
+  // helpers
   replaceCart: (newItems: CartItem[]) => void;
   getItemByVariant: (variantId: string) => CartItem | undefined;
 }
@@ -38,6 +57,7 @@ const CART_STORAGE_KEY = "cart-storage";
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [voucher, setVoucher] = useState<AppliedVoucher | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load cart from storage on mount
@@ -47,10 +67,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   // Save cart to storage whenever it changes
   useEffect(() => {
-    if (isLoaded) {
-      saveCart();
-    }
-  }, [items, isLoaded]);
+    if (isLoaded) saveCart();
+  }, [items, voucher, isLoaded]);
 
   const loadCart = async () => {
     try {
@@ -62,6 +80,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (stored) {
         const parsed = JSON.parse(stored);
         setItems(parsed.state?.items || []);
+        setVoucher(parsed.state?.voucher || null);
       }
     } catch (error) {
       console.error("Error loading cart:", error);
@@ -72,7 +91,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const saveCart = async () => {
     try {
-      const data = JSON.stringify({ state: { items } });
+      const data = JSON.stringify({ state: { items, voucher } });
       if (Platform.OS === "web") {
         localStorage.setItem(CART_STORAGE_KEY, data);
       } else {
@@ -86,27 +105,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addItem = (item: Omit<CartItem, "quantity">) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find(
-        (i) => i.variantId === item.variantId
+        (i) => i.variantId === item.variantId,
       );
 
-      let newItems;
       if (existingItem) {
-        console.log("🛒 Updated quantity in cart:", {
-          product: item.name,
-          color: item.color,
-          size: item.size,
-          newQuantity: existingItem.quantity + 1,
-        });
-        newItems = prevItems.map((i) =>
+        return prevItems.map((i) =>
           i.variantId === item.variantId
             ? { ...i, quantity: i.quantity + 1 }
-            : i
+            : i,
         );
-      } else {
-        newItems = [...prevItems, { ...item, quantity: 1 }];
       }
-
-      return newItems;
+      return [...prevItems, { ...item, quantity: 1 }];
     });
   };
 
@@ -119,23 +128,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       removeItem(variantId);
       return;
     }
-
     setItems((prevItems) =>
-      prevItems.map((i) => (i.variantId === variantId ? { ...i, quantity } : i))
+      prevItems.map((i) =>
+        i.variantId === variantId ? { ...i, quantity } : i,
+      ),
     );
   };
 
   const clearCart = () => {
     setItems([]);
+    setVoucher(null);
   };
 
-  const getTotalItems = () => {
-    return items.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getTotalPrice = () => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
   const replaceCart = (newItems: CartItem[]) => {
     setItems(newItems);
   };
@@ -144,23 +148,39 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return items.find((i) => i.variantId === variantId);
   };
 
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        getTotalItems,
-        getTotalPrice,
-        getItemByVariant,
-        replaceCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const clearVoucher = () => setVoucher(null);
+
+  // totals
+  const getTotalItems = () => items.reduce((t, i) => t + i.quantity, 0);
+  const getSubTotal = () => items.reduce((t, i) => t + i.price * i.quantity, 0);
+  const getDiscount = () => voucher?.discount ?? 0;
+  const getTotalPrice = () => Math.max(0, getSubTotal() - getDiscount());
+
+  const value = useMemo<CartContextType>(
+    () => ({
+      items,
+
+      voucher,
+      setVoucher,
+      clearVoucher,
+
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+
+      getTotalItems,
+      getSubTotal,
+      getDiscount,
+      getTotalPrice,
+
+      replaceCart,
+      getItemByVariant,
+    }),
+    [items, voucher],
   );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {

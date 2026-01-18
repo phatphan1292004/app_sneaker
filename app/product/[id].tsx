@@ -14,7 +14,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -34,7 +34,7 @@ export default function ProductDetailScreen() {
 
   // Hàm gửi trả lời bình luận
   const handleSubmitReply = async (
-    reply: Omit<ReviewType, "_id" | "createdAt">
+    reply: Omit<ReviewType, "_id" | "createdAt">,
   ) => {
     if (!reply.parent_id) return;
     setSubmittingReplyId(reply.parent_id);
@@ -60,7 +60,7 @@ export default function ProductDetailScreen() {
 
   // Hàm gửi bình luận
   const handleSubmitReview = async (
-    review: Omit<ReviewType, "_id" | "createdAt">
+    review: Omit<ReviewType, "_id" | "createdAt">,
   ) => {
     setSubmittingReview(true);
 
@@ -102,7 +102,7 @@ export default function ProductDetailScreen() {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "review">(
-    "description"
+    "description",
   );
 
   // Check if product is in favorites on load
@@ -140,7 +140,7 @@ export default function ProductDetailScreen() {
         ...new Set(
           product.variants
             .filter((v) => v.color === selectedColor)
-            .map((v) => v.size)
+            .map((v) => v.size),
         ),
       ].sort();
     }
@@ -174,7 +174,7 @@ export default function ProductDetailScreen() {
   const selectedVariant = useMemo(() => {
     if (!product?.variants || !selectedColor || !selectedSize) return null;
     return product.variants.find(
-      (v) => v.color === selectedColor && v.size === selectedSize
+      (v) => v.color === selectedColor && v.size === selectedSize,
     );
   }, [product, selectedColor, selectedSize]);
 
@@ -193,7 +193,10 @@ export default function ProductDetailScreen() {
     if (!product) return;
 
     try {
-      const result = await favoriteService.toggleFavorite(user.uid, product._id);
+      const result = await favoriteService.toggleFavorite(
+        user.uid,
+        product._id,
+      );
 
       if (result.success) {
         setIsFavorite(!isFavorite);
@@ -245,9 +248,10 @@ export default function ProductDetailScreen() {
     }
 
     // Calculate discounted price
-    const finalPrice = product.discount && product.discount > 0
-      ? selectedVariant.price * (1 - product.discount / 100)
-      : selectedVariant.price;
+    const finalPrice =
+      product.discount && product.discount > 0
+        ? selectedVariant.price * (1 - product.discount / 100)
+        : selectedVariant.price;
 
     addItem({
       productId: product._id,
@@ -309,9 +313,10 @@ export default function ProductDetailScreen() {
 
           <Image
             source={{
-              uri: typeof product.brand_id === "object" && product.brand_id.logo
-                ? product.brand_id.logo
-                : "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+              uri:
+                typeof product.brand_id === "object" && product.brand_id.logo
+                  ? product.brand_id.logo
+                  : "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
             }}
             className="w-14 h-14 rounded-lg"
             resizeMode="contain"
@@ -387,7 +392,10 @@ export default function ProductDetailScreen() {
 
         {/* Product Info */}
         <View className="px-5 pt-10">
-          <Text className="text-sm mb-2 font-semibold" style={{ color: "#496c60" }}>
+          <Text
+            className="text-sm mb-2 font-semibold"
+            style={{ color: "#496c60" }}
+          >
             {brandName}
           </Text>
           <Text className="text-2xl font-bold text-gray-900 mb-3">
@@ -401,7 +409,10 @@ export default function ProductDetailScreen() {
                 className="px-3 py-1 rounded-full"
                 style={{ backgroundColor: "#fee2e2" }}
               >
-                <Text className="text-xs font-bold" style={{ color: "#dc2626" }}>
+                <Text
+                  className="text-xs font-bold"
+                  style={{ color: "#dc2626" }}
+                >
                   -{product.discount}% OFF
                 </Text>
               </View>
@@ -411,7 +422,10 @@ export default function ProductDetailScreen() {
                 className="px-3 py-1 rounded-full"
                 style={{ backgroundColor: "#dbeafe" }}
               >
-                <Text className="text-xs font-semibold" style={{ color: "#2563eb" }}>
+                <Text
+                  className="text-xs font-semibold"
+                  style={{ color: "#2563eb" }}
+                >
                   {product.sold} Sold
                 </Text>
               </View>
@@ -564,17 +578,19 @@ export default function ProductDetailScreen() {
         <View className="flex-1 px-5 py-4" style={{ borderColor: "#496c60" }}>
           {product.discount && product.discount > 0 ? (
             <View>
-              <Text
-                className="text-sm text-gray-400 line-through mb-1"
-              >
+              <Text className="text-sm text-gray-400 line-through mb-1">
                 {selectedVariant
                   ? formatPrice(selectedVariant.price)
                   : formatPrice(product.base_price)}
               </Text>
               <Text className="font-bold text-lg" style={{ color: "#496c60" }}>
                 {selectedVariant
-                  ? formatPrice(selectedVariant.price * (1 - product.discount / 100))
-                  : formatPrice(product.base_price * (1 - product.discount / 100))}
+                  ? formatPrice(
+                      selectedVariant.price * (1 - product.discount / 100),
+                    )
+                  : formatPrice(
+                      product.base_price * (1 - product.discount / 100),
+                    )}
               </Text>
             </View>
           ) : (
