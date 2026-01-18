@@ -247,7 +247,7 @@ export default function AdminOrders() {
                     }
                     numberOfLines={1}
                   >
-                    user: {item.user_id}
+                    user: {item.user_name || item.user_id}
                   </Text>
                 </View>
 

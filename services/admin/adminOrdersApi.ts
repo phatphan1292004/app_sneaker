@@ -10,8 +10,11 @@ export type OrderStatus =
 
 export type OrderItemDTO = {
   brand?: string;
-  product_id: string;
-  variant_id: string;
+
+  product_id: string | { _id: string; name: string; images: string[] };
+
+  variant_id: string | { _id: string; color: string; size: string };
+
   quantity: number;
   price: number;
 };
@@ -27,6 +30,7 @@ export type ShippingAddressDTO = {
 export type OrderDTO = {
   _id: string;
   user_id: string;
+  user_name?: string;
   items: OrderItemDTO[];
   shipping_address: ShippingAddressDTO;
   payment_method: string;
@@ -72,7 +76,7 @@ export async function updateAdminOrder(
     shipping_address: ShippingAddressDTO;
     items: OrderItemDTO[];
     total_amount: number;
-  }>
+  }>,
 ) {
   const res = await api.patch(`/admin/orders/${id}`, payload);
   return res.data as {
@@ -89,7 +93,7 @@ export async function deleteAdminOrder(id: string) {
 }
 export async function updateAdminOrderStatus(
   id: string,
-  status: OrderDTO["status"]
+  status: OrderDTO["status"],
 ) {
   const res = await api.patch(`/admin/orders/${id}/status`, { status });
   return res.data as {

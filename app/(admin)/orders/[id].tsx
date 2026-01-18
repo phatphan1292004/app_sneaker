@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   Pressable,
   Text,
   View,
@@ -55,7 +56,7 @@ export default function OrderDetail() {
   const totalItems = useMemo(
     () =>
       order?.items?.reduce((s, it) => s + (Number(it.quantity) || 0), 0) ?? 0,
-    [order]
+    [order],
   );
 
   const load = async () => {
@@ -168,7 +169,7 @@ export default function OrderDetail() {
         data={[
           { key: "header" },
           ...(order.items || []).map(
-            (x, idx) => ({ key: String(idx), item: x }) as any
+            (x, idx) => ({ key: String(idx), item: x }) as any,
           ),
         ]}
         keyExtractor={(x: any) => x.key}
@@ -240,23 +241,58 @@ export default function OrderDetail() {
           }
 
           const it = item.item as OrderDTO["items"][number];
+
+          const p = typeof it.product_id === "string" ? null : it.product_id;
+          const v = typeof it.variant_id === "string" ? null : it.variant_id;
+
+          const img = p?.images?.[0];
+
           return (
             <CardPro className="mb-3">
-              <Text
-                className={
-                  t(mode, "text-gray-900", "text-white") + " font-extrabold"
-                }
-                numberOfLines={1}
-              >
-                product: {String(it.product_id).slice(-6)} • variant:{" "}
-                {String(it.variant_id).slice(-6)}
-              </Text>
-              <Text
-                className={t(mode, "text-gray-500", "text-gray-400") + " mt-1"}
-              >
-                Brand: {it.brand || "-"} • Qty: {it.quantity} •{" "}
-                {Number(it.price).toLocaleString("vi-VN")} ₫
-              </Text>
+              <View className="flex-row">
+                <View
+                  className={
+                    t(mode, "bg-gray-100", "bg-gray-900") +
+                    " w-14 h-14 rounded-2xl overflow-hidden mr-3"
+                  }
+                >
+                  {!!img && (
+                    <Image
+                      source={{ uri: img }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                    />
+                  )}
+                </View>
+
+                <View className="flex-1">
+                  <Text
+                    className={
+                      t(mode, "text-gray-900", "text-white") + " font-extrabold"
+                    }
+                    numberOfLines={1}
+                  >
+                    {p?.name || "Unknown product"}
+                  </Text>
+
+                  <Text
+                    className={
+                      t(mode, "text-gray-500", "text-gray-400") + " mt-1"
+                    }
+                  >
+                    Màu: {v?.color || "-"} • Size: {v?.size || "-"} • Qty:{" "}
+                    {it.quantity}
+                  </Text>
+
+                  <Text
+                    className={
+                      t(mode, "text-gray-500", "text-gray-400") + " mt-1"
+                    }
+                  >
+                    {Number(it.price).toLocaleString("vi-VN")} ₫
+                  </Text>
+                </View>
+              </View>
             </CardPro>
           );
         }}

@@ -72,7 +72,7 @@ function FieldPro({
     t(
       mode,
       "bg-gray-50 border border-gray-200",
-      "bg-gray-950 border border-gray-900"
+      "bg-gray-950 border border-gray-900",
     ) + " rounded-2xl px-4 py-3 flex-row items-center";
 
   const errBorder = mode === "dark" ? " border-red-700" : " border-red-500";
@@ -264,7 +264,7 @@ export default function ProductDetail() {
     } catch (err: any) {
       const msg = getErrMessage(
         err,
-        isEdit ? "Không cập nhật được variant" : "Không tạo được variant"
+        isEdit ? "Không cập nhật được variant" : "Không tạo được variant",
       );
       const fieldFromServer = err?.response?.data?.field as
         | keyof FormErrors
