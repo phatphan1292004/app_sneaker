@@ -132,8 +132,12 @@ export default function BrandScreen() {
       {/* Header */}
       <View className="px-5 py-4 flex-row items-center justify-between">
         <Image
+          // source={{
+          //   uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+          // }}
+
           source={{
-            uri: "https://cdn.dribbble.com/userupload/31584578/file/original-050b602625e120a96798e483b9199f46.png?format=webp&resize=450x338&vertical=center",
+            uri: "https://i.pinimg.com/736x/3f/c6/ba/3fc6bad36d735625e7bbb4a7e311ecd2.jpg",
           }}
           className="w-14 h-14 rounded-lg"
         />

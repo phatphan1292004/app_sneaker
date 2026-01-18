@@ -40,7 +40,7 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white px-6 pt-12">
+    <View className="flex-1 bg-white px-6 pt-20">
       {/* Back Button */}
       <TouchableOpacity onPress={() => router.back()} className="mb-8">
         <Ionicons name="chevron-back" size={24} color="#000" />
